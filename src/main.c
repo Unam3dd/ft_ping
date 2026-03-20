@@ -31,11 +31,8 @@ int main(int ac, char **av)
 
 	argparse_init(&args, args_opt, ARGPARSE_CNT(ARGPARSE_GET(opt)));
 
-	if (ac < 2 || argparse_parse(&args, ac, av)) {
-		argparse_show_usage(&args);
+	if (ac < 2 || argparse_parse(&args, ac, av))
 		return (1);
-	}
-
 
 
 	return (0);

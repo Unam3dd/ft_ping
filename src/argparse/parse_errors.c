@@ -26,7 +26,7 @@ static const char *parse_get_string_status(const arg_status_t status)
 		const arg_status_t status;
 	} msg_tab[] = {
 		{ "Success", E_ARG_OK },
-		{ "Argument is not optional", E_ARG_NOT_OPTIONAL },
+		{ "Argument is required !", E_ARG_IS_REQUIRED },
 		{ "Invalid argument !", E_ARG_UNK },
 		{ "Invalid format !", E_ARG_BAD_FMT },
 		{ "Argument value is missing !", E_ARG_NULL },

@@ -31,6 +31,7 @@
 
 typedef struct s_args_t args_t;
 typedef struct s_arg_opt_t arg_opt_t;
+typedef struct s_arg_ctx_t arg_ctx_t;
 
 /////////////////////////////////////
 //
@@ -63,7 +64,7 @@ typedef enum e_arg_type_t
 typedef enum e_arg_status_t
 {
     E_ARG_OK = 0,
-    E_ARG_NOT_OPTIONAL = -1,
+    E_ARG_IS_REQUIRED = -1,
     E_ARG_UNK = -2,
     E_ARG_BAD_FMT = -3,
     E_ARG_NULL = -4,
@@ -112,6 +113,13 @@ struct s_args_t
     const char *credit;
     arg_opt_t *opt;
     size_t nopt;
+};
+
+struct s_arg_ctx_t
+{
+	args_t		 *args;
+	arg_opt_t 	 *current;
+	int 	  	 *i;
 };
 
 /////////////////////////////////////

@@ -26,7 +26,7 @@
 #include "./parse_numbers.c"
 #include "./parse_string.c"
 
-static arg_opt_t *argparse_get(args_t *args, const char *n)
+static arg_opt_t *argparse_get(args_t *args, const char *n, arg_status_t *status)
 {
 	if (!args || !n)
 		return (NULL);
@@ -35,8 +35,15 @@ static arg_opt_t *argparse_get(args_t *args, const char *n)
 
 	cnt = strspn(n, "-");
 
-	if (cnt != 1 && cnt != 2)
-		return (cnt > 2 ? (arg_opt_t*)E_ARG_BAD_FMT : (arg_opt_t*)E_ARG_NOT_OPTIONAL);
+	if (cnt != 1 && cnt != 2) {
+		
+		if (cnt > 2 && status)
+			*status = E_ARG_BAD_FMT;
+		else
+			*status = E_ARG_IS_REQUIRED;
+
+		return (NULL);
+	}
 
 	n += cnt;
 
@@ -51,7 +58,10 @@ static arg_opt_t *argparse_get(args_t *args, const char *n)
 		i++;
 	}
 
-	return ((arg_opt_t*)E_ARG_UNK);
+	if (status)
+		*status = E_ARG_UNK;
+
+	return (NULL);
 }
 
 static arg_opt_t *argparse_next(args_t *args, arg_flag_t flags)
@@ -94,12 +104,12 @@ static arg_status_t parse_argument(arg_opt_t *arg, char *value)
 	return (s);
 }
 
-static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *idx, int ac, char **av, int flags)
+static arg_status_t handle_argument(arg_ctx_t *ctx, int ac, char **av, int flags)
 {
-	if (!ac || !av || !idx)
+	if (!ac || !av || !ctx || !ctx->i)
 		return (E_ARG_NULL);
 
-	arg_opt_t *current = optional ? optional : argparse_next(args, flags);
+	arg_opt_t *current = flags & ARG_REQUIRED ? argparse_next(ctx->args, flags) : ctx->current;
 
 	if (!current)
 		return (E_ARG_NULL);
@@ -114,16 +124,38 @@ static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *idx,
 
 	if (ARGPARSE_ARG_HAS_NOT_REQUIRED(current)) {
 
-		if (*idx + 1 >= ac)
+		if (*ctx->i + 1 >= ac)
 			return (E_ARG_MISS_PARAMS);
 
-		*idx += 1;
+		*ctx->i += 1;
 
-		if (av[*idx] == NULL || av[*idx][0] == 0)
+		if (av[*ctx->i] == NULL || av[*ctx->i][0] == 0)
 			return (E_ARG_MISS_PARAMS);
 	}
 
-	return (parse_argument(current, av[*idx]));
+	return (parse_argument(current, av[*ctx->i]));
+}
+
+static arg_status_t proceed_argument(arg_ctx_t *ctx, arg_status_t s, int ac, char **av)
+{
+	if (!ctx)
+		return (E_ARG_NULL);
+
+	switch (s) {
+		case E_ARG_BAD_FMT:
+			return (E_ARG_BAD_FMT);
+
+		case E_ARG_UNK:
+			return (E_ARG_UNK);
+
+		case E_ARG_IS_REQUIRED:
+			return (handle_argument(ctx, ac, av, ARG_REQUIRED));
+
+		default:
+			return (handle_argument(ctx, ac, av, ARG_OPTIONAL));
+	}
+
+	return (E_ARG_NULL);
 }
 
 /////////////////////////////////////
@@ -134,50 +166,29 @@ static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *idx,
 
 int argparse_parse(args_t *args, int ac, char **av)
 {
-	if (!args)
+	if (!args || !av)
         return (1);
 
-	arg_opt_t *optional = NULL;
+	int i = 1;
 	arg_status_t s = 0;
-	const char *err = NULL;
+	
+	arg_ctx_t ctx = { 
+		.args = args, 
+		.current = NULL, 
+		.i = &i 
+	};
 
-	for (int i = 1; i < ac; i++) {
+	for (i = 1; i < ac; i++) {
+		ctx.current = argparse_get(args, av[i], &s);
 
-		optional = argparse_get(args, av[i]);
-
-		if (optional == (arg_opt_t*)E_ARG_NOT_OPTIONAL) {
-			printf("Argument Required: %s\n", av[i]);
-
-			s = handle_argument(args, NULL, &i, ac, av, ARG_REQUIRED);
-
-			if (s < E_ARG_OK)
-				break;
-
-			continue ;
-		}
-
-		if (optional == (arg_opt_t*)E_ARG_BAD_FMT) {
-			s = E_ARG_BAD_FMT;
-			continue ;
-		}
-
-		if (optional == (arg_opt_t *)E_ARG_UNK) {
-			s = E_ARG_UNK;
-			continue ;
-		}
-
-		printf("Argument Optionnal Found: %s\n", av[i]);
+		s = proceed_argument(&ctx, s, ac, av);
 		
-		s = handle_argument(NULL, optional, &i, ac, av, ARG_OPTIONAL);
-
 		if (s < E_ARG_OK)
-			break;
+			break ;
 	}
 
-	if (s < E_ARG_OK) {
-		err = parse_get_string_status(s);
-		printf("Error: %s\n", err);
-	}
+	if (s < E_ARG_OK)
+		printf("Error: %s\n", parse_get_string_status(s));
 
-    return (s < E_ARG_OK ? 1 : 0);
+    return (s < E_ARG_OK);
 }
