@@ -12,6 +12,7 @@
 
 #include "../../inc/argparse.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /////////////////////////////////////
@@ -43,7 +44,8 @@ static arg_opt_t *argparse_get(args_t *args, const char *n)
 
 		if (cnt == 2 && args->opt[i].alias && !strcmp(args->opt[i].alias, n))
 			return (&args->opt[i]);
-		else if (cnt == 1 && args->opt[i].opt && !strcmp(args->opt[i].opt, n))
+		
+		if (cnt == 1 && args->opt[i].opt && !strcmp(args->opt[i].opt, n))
 			return (&args->opt[i]);
 		
 		i++;
@@ -92,9 +94,9 @@ static arg_status_t parse_argument(arg_opt_t *arg, char *value)
 	return (s);
 }
 
-static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *ac, char **av, int flags)
+static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *idx, int ac, char **av, int flags)
 {
-	if (!ac || !av)
+	if (!ac || !av || !idx)
 		return (E_ARG_NULL);
 
 	arg_opt_t *current = optional ? optional : argparse_next(args, flags);
@@ -110,10 +112,18 @@ static arg_status_t handle_argument(args_t *args, arg_opt_t *optional, int *ac, 
 		return (E_ARG_OK);
 	}
 
-	if (ARGPARSE_ARG_HAS_NOT_REQUIRED(current))
-		*ac += 1;
+	if (ARGPARSE_ARG_HAS_NOT_REQUIRED(current)) {
 
-	return (parse_argument(current, av[*ac]));
+		if (*idx + 1 >= ac)
+			return (E_ARG_MISS_PARAMS);
+
+		*idx += 1;
+
+		if (av[*idx] == NULL || av[*idx][0] == 0)
+			return (E_ARG_MISS_PARAMS);
+	}
+
+	return (parse_argument(current, av[*idx]));
 }
 
 /////////////////////////////////////
@@ -138,7 +148,7 @@ int argparse_parse(args_t *args, int ac, char **av)
 		if (optional == (arg_opt_t*)E_ARG_NOT_OPTIONAL) {
 			printf("Argument Required: %s\n", av[i]);
 
-			s = handle_argument(args, NULL, &ac, av, ARG_REQUIRED);
+			s = handle_argument(args, NULL, &i, ac, av, ARG_REQUIRED);
 
 			if (s < E_ARG_OK)
 				break;
@@ -146,13 +156,22 @@ int argparse_parse(args_t *args, int ac, char **av)
 			continue ;
 		}
 
-		if (optional == (arg_opt_t*)E_ARG_BAD_FMT || optional == (arg_opt_t*)E_ARG_UNK) {
-			s = (arg_status_t)optional;
+		if (optional == (arg_opt_t*)E_ARG_BAD_FMT) {
+			s = E_ARG_BAD_FMT;
+			continue ;
+		}
+
+		if (optional == (arg_opt_t *)E_ARG_UNK) {
+			s = E_ARG_UNK;
 			continue ;
 		}
 
 		printf("Argument Optionnal Found: %s\n", av[i]);
-		s = handle_argument(NULL, optional, &ac, av, ARG_OPTIONAL);
+		
+		s = handle_argument(NULL, optional, &i, ac, av, ARG_OPTIONAL);
+
+		if (s < E_ARG_OK)
+			break;
 	}
 
 	if (s < E_ARG_OK) {

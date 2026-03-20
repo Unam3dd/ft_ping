@@ -25,5 +25,7 @@ static arg_status_t parse_string(arg_opt_t *arg, char *value)
 
 	arg->str = value;
 
+	ARGPARSE_MARK_ARG(arg);
+
 	return (E_ARG_OK);
 }

@@ -32,7 +32,9 @@ static const char *parse_get_string_status(const arg_status_t status)
 		{ "Argument value is missing !", E_ARG_NULL },
 		{ "Argument has not expected flags", E_ARG_NOT_FLAGS },
 		{ "Argument is already set !", E_ARG_ALREADY_SET },
-		{ "Argument is not the format expected !", E_ARG_PARSE_NOT_NBR | E_ARG_PARSE_NOT_BOOL }
+		{ "Argument is not a numbers !", E_ARG_PARSE_NOT_NBR },
+		{ "Argument is not a boolean !", E_ARG_PARSE_NOT_BOOL },
+		{ "Argument miss parameters !", E_ARG_MISS_PARAMS }
 	};
 
 	for (uint16_t i = 0; i < sizeof(msg_tab)/sizeof(msg_tab[0]); i++)

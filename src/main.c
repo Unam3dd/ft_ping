@@ -20,7 +20,7 @@ int main(int ac, char **av)
 
 	ARGPARSE(opt)
 		ARGPARSE_REQUIRED("ip", "Target IP Address", ARG_STRING),
-		ARGPARSE_OPT("b", "bool", "simple bool", FALSE, ARG_OPTIONAL | ARG_PARAM, ARG_BOOL),
+		ARGPARSE_OPT("b", "bool", "simple bool", .bool = FALSE, ARG_OPTIONAL | ARG_PARAM, ARG_BOOL),
 		ARGPARSE_OPT("v", "version", "Show version", "1.7", ARG_OPTIONAL, ARG_STRING),
   		ARGPARSE_HELP(),
   	ARGPARSE_END()
