@@ -1,0 +1,96 @@
+Checks: >
+  -*,
+  readability-identifier-naming,
+  readability-non-const-parameter,
+  readability-misleading-indentation,
+  readability-math-missing-parentheses,
+  misc-unused-parameters,
+  portability-simd-intrinsics,
+  readability-avoid-return-with-void-value,
+  readability-else-after-return,
+  readability-function-size,
+  readability-simplify-boolean-expr,
+  misc-no-recursion,
+  readability-inconsistent-declaration-parameter-name
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: '.*'
+#AnalyzeTemporaryDtors: false
+FormatStyle: file
+
+CheckOptions:
+  # Limiter la taille et la complexité des fonctions
+  - key:             readability-function-size.LineThreshold
+    value:           '60'
+  - key:             readability-function-size.ParameterThreshold
+    value:           '5'
+  - key:             readability-function-size.VariableThreshold
+    value:           '5'
+
+  # Paramètres non utilisés : mode strict
+  - key:             misc-unused-parameters.StrictMode
+    value:           '1'
+
+  # Règles de nommage Numlog
+  # Fonctions
+  - key:             readability-identifier-naming.FunctionCase
+    value:           lower_case
+
+  # Variables
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.LocalVariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalVariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalVariablePrefix
+    value:           g_
+  - key:             readability-identifier-naming.StaticVariableCase
+    value:           lower_case
+
+  # Constantes
+  - key:             readability-identifier-naming.LocalConstantCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StaticConstantCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           lower_case
+
+  # Paramètres (y compris pointeurs)
+  - key:             readability-identifier-naming.ParameterCase
+    value:           lower_case
+  - key:             readability-identifier-naming.PointerParameterCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ConstantParameterCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ConstantPointerParameterCase
+    value:           lower_case
+
+  # Macros préprocesseur
+  - key:             readability-identifier-naming.MacroDefinitionCase
+    value:           UPPER_CASE
+
+  # Structures / unions / typedef / alias de type
+  - key:             readability-identifier-naming.StructCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StructPrefix
+    value:           s_
+  - key:             readability-identifier-naming.UnionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.UnionPrefix
+    value:           u_
+  - key:             readability-identifier-naming.TypedefCase
+    value:           lower_case
+  - key:             readability-identifier-naming.TypedefSuffix
+    value:           _t
+  - key:             readability-identifier-naming.TypeAliasCase
+    value:           lower_case
+  - key:             readability-identifier-naming.TypeAliasSuffix
+    value:           _t
+
+  # Enumérations
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           UPPER_CASE
+
+

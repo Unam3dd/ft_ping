@@ -1,17 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_ping.h                                          :+:      :+:    :+:   */
+/*   parse_string.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/08 21:15:42 by stales            #+#    #+#             */
-/*   Updated: 2026/03/08 21:18:01 by stales           ###   ########.fr       */
+/*   Created: 2026/03/19 15:37:49 by stales            #+#    #+#             */
+/*   Updated: 2026/03/19 15:40:51 by stales           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_PING_H
-#define FT_PING_H
+#include "../../inc/argparse.h"
 
 /////////////////////////////////////
 //
@@ -19,20 +18,12 @@
 //
 ////////////////////////////////////
 
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-
-/////////////////////////////////////
-//
-//			ENUM
-//
-////////////////////////////////////
-
-typedef enum e_bool_t
+static arg_status_t parse_string(arg_opt_t *arg, char *value)
 {
-	FALSE,
-	TRUE
-} bool_t;
+	if (!arg || !value)
+		return (E_ARG_NULL);
 
-#endif
+	arg->str = value;
+
+	return (E_ARG_OK);
+}

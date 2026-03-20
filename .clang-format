@@ -1,0 +1,30 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ColumnLimit: 80
+
+# Style de crochets type Numlog (brace sur la ligne suivante)
+BreakBeforeBraces: Allman
+
+# Pas de fonctions, if, boucles sur une seule ligne
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+
+# Espaces et parenthèses
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceInEmptyParentheses: false
+
+# Alignement des pointeurs
+PointerAlignment: Right
+
+# Divers
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignOperands: true
+IndentCaseLabels: true
