@@ -34,7 +34,9 @@ static const char *parse_get_string_status(const arg_status_t status)
 		{ "Argument is already set !", E_ARG_ALREADY_SET },
 		{ "Argument is not a numbers !", E_ARG_PARSE_NOT_NBR },
 		{ "Argument is not a boolean !", E_ARG_PARSE_NOT_BOOL },
-		{ "Argument miss parameters !", E_ARG_MISS_PARAMS }
+		{ "Argument miss parameters !", E_ARG_MISS_PARAMS },
+		{ "Argument is empty !", E_ARG_STRING_EMPTY },
+		{ "Required Argument missing !", E_ARG_MISS_ARG }
 	};
 
 	for (uint16_t i = 0; i < sizeof(msg_tab)/sizeof(msg_tab[0]); i++)

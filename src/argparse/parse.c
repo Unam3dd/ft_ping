@@ -36,12 +36,8 @@ static arg_opt_t *argparse_get(args_t *args, const char *n, arg_status_t *status
 	cnt = strspn(n, "-");
 
 	if (cnt != 1 && cnt != 2) {
-		
-		if (cnt > 2 && status)
-			*status = E_ARG_BAD_FMT;
-		else
-			*status = E_ARG_IS_REQUIRED;
-
+		if (status)
+			*status = cnt > 2 ? E_ARG_BAD_FMT : E_ARG_IS_REQUIRED;
 		return (NULL);
 	}
 
@@ -69,7 +65,7 @@ static arg_opt_t *argparse_next(args_t *args, arg_flag_t flags)
 	if (!args)
 		return (NULL);
 
-	for (size_t i = 0; i < args->nopt; i++)
+	for (uint32_t i = 0; i < args->nopt; i++)
 		if (args->opt[i].flags & flags)
 			return (&args->opt[i]);
 
@@ -109,10 +105,11 @@ static arg_status_t handle_argument(arg_ctx_t *ctx, int ac, char **av, int flags
 	if (!ac || !av || !ctx || !ctx->i)
 		return (E_ARG_NULL);
 
-	arg_opt_t *current = flags & ARG_REQUIRED ? argparse_next(ctx->args, flags) : ctx->current;
+	arg_opt_t *current = flags & ARG_REQUIRED 
+		? argparse_next(ctx->args, flags) 
+		: ctx->current;
 
-	if (!current)
-		return (E_ARG_NULL);
+	if (!current) return (E_ARG_NULL);
 
 	if (ARGPARSE_ARG_HAS(current, ARG_MARK))
 		return (E_ARG_ALREADY_SET);
@@ -158,6 +155,23 @@ static arg_status_t proceed_argument(arg_ctx_t *ctx, arg_status_t s, int ac, cha
 	return (E_ARG_NULL);
 }
 
+static arg_status_t check_required_arg(args_t *args)
+{
+	arg_status_t s = E_ARG_OK;
+
+	for (uint32_t i = 0; i < args->nopt; i++) {
+
+		if (args->opt[i].flags & ARG_REQUIRED) {
+
+			if (!(args->opt[i].flags & ARG_MARK)) {
+				s = E_ARG_MISS_ARG;
+				fprintf(stderr, "\033[1;31mError: '%s' Missing Required Argument !\033[00m", args->opt[i].opt);
+			}
+		}
+	}
+	return (s);
+}
+
 /////////////////////////////////////
 //
 //			PARSE
@@ -187,8 +201,10 @@ int argparse_parse(args_t *args, int ac, char **av)
 			break ;
 	}
 
-	if (s < E_ARG_OK)
+	if (s < E_ARG_OK) {
 		printf("Error: %s\n", parse_get_string_status(s));
+		return (1);
+	}
 
-    return (s < E_ARG_OK);
+    return (check_required_arg(args) < E_ARG_OK);
 }

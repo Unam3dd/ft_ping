@@ -18,10 +18,17 @@
 //
 ////////////////////////////////////
 
+#include <string.h>
+
 static arg_status_t parse_string(arg_opt_t *arg, char *value)
 {
 	if (!arg || !value)
 		return (E_ARG_NULL);
+
+	size_t len = strlen(value);
+
+	if (!len || strspn(value, " \t\r\n") == len)
+		return (E_ARG_STRING_EMPTY);
 
 	arg->str = value;
 

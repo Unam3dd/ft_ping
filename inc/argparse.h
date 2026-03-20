@@ -72,7 +72,9 @@ typedef enum e_arg_status_t
     E_ARG_ALREADY_SET = -6,
     E_ARG_PARSE_NOT_NBR = -7,
     E_ARG_PARSE_NOT_BOOL = -8,
-	E_ARG_MISS_PARAMS = -9
+	E_ARG_MISS_PARAMS = -9,
+	E_ARG_STRING_EMPTY = -10,
+	E_ARG_MISS_ARG = -11
 } arg_status_t;
 
 /////////////////////////////////////
@@ -112,7 +114,7 @@ struct s_args_t
     const char *usage;
     const char *credit;
     arg_opt_t *opt;
-    size_t nopt;
+    uint32_t nopt;
 };
 
 struct s_arg_ctx_t
@@ -139,6 +141,8 @@ struct s_arg_ctx_t
 #define ARGPARSE_OPT(opt, alias, help, value, flags, type) {opt, alias, help, { value }, flags, type}
 
 #define ARGPARSE_REQUIRED(opt, help, type) ARGPARSE_OPT(opt, opt, help, NULL, ARG_REQUIRED | ARG_PARAM, type)
+
+#define ARGPARSE_BOOL(opt, alias, help, value, flags) ARGPARSE_OPT(opt, alias, help, .bool = value, flags, ARG_BOOL)
 
 #define ARGPARSE_HELP() ARGPARSE_OPT("h", "help", "\tshow this help", NULL, ARG_HELP | ARG_OPTIONAL, ARG_NONE)
 
