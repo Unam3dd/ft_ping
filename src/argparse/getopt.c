@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_string.c                                     :+:      :+:    :+:   */
+/*   getopt.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/19 15:37:49 by stales            #+#    #+#             */
-/*   Updated: 2026/03/19 15:40:51 by stales           ###   ########.fr       */
+/*   Created: 2026/03/21 09:15:52 by stales            #+#    #+#             */
+/*   Updated: 2026/03/21 09:21:39 by stales           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,19 @@
 
 #include <string.h>
 
-static arg_status_t parse_string(arg_opt_t *arg, char *value)
+arg_opt_t *argparse_get(args_t *args, const char *name, const char *alias)
 {
-	if (!arg || !value)
-		return (E_ARG_NULL);
+	if (!args || !name)
+		return (NULL);
 
-	size_t len = strspn(value, " \t\r\n");
+	for (uint32_t i = 0; i < args->nopt; i++) {
 
-	if (!len || value[len] == 0)
-		return (E_ARG_STRING_EMPTY);
+		if (!strcmp(args->opt[i].opt, name))
+			return (&args->opt[i]);
 
-	arg->str = value;
+		if (alias && args->opt[i].alias && !strcmp(args->opt[i].alias, name))
+			return (&args->opt[i]);
+	}
 
-	ARGPARSE_MARK_ARG(arg);
-
-	return (E_ARG_OK);
+	return (NULL);
 }

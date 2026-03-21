@@ -36,7 +36,9 @@ static const char *parse_get_string_status(const arg_status_t status)
 		{ "Argument is not a boolean !", E_ARG_PARSE_NOT_BOOL },
 		{ "Argument miss parameters !", E_ARG_MISS_PARAMS },
 		{ "Argument is empty !", E_ARG_STRING_EMPTY },
-		{ "Required Argument missing !", E_ARG_MISS_ARG }
+		{ "Required Argument missing !", E_ARG_MISS_ARG },
+		{ "Argparse config is invalid !", E_ARG_INVALID_CFG },
+		{ "Argument parameters Overflow/Underflow !", E_ARG_OVERFLOW }
 	};
 
 	for (uint16_t i = 0; i < sizeof(msg_tab)/sizeof(msg_tab[0]); i++)

@@ -6,11 +6,12 @@
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/18 09:30:53 by stales            #+#    #+#             */
-/*   Updated: 2026/03/19 16:19:37 by stales           ###   ########.fr       */
+/*   Updated: 2026/03/21 09:24:21 by stales           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../inc/argparse.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,7 @@
 #include "./parse_bool.c"
 #include "./parse_numbers.c"
 #include "./parse_string.c"
+#include "./parse_ip.c"
 
 static arg_opt_t *argparse_get(args_t *args, const char *n, arg_status_t *status)
 {
@@ -83,14 +85,15 @@ static arg_status_t parse_argument(arg_opt_t *arg, char *value)
 			break;
 
 		case ARG_INT:
-		case ARG_UINT:
-		case ARG_LONG:
-		case ARG_ULONG:
 			s = parse_numbers(arg, value);
 			break;
 
 		case ARG_STRING:
 			s = parse_string(arg, value);
+			break;
+
+		case ARG_IPV4:
+			s = parse_ip(arg, value);
 			break;
 
 		default:
@@ -165,11 +168,23 @@ static arg_status_t check_required_arg(args_t *args)
 
 			if (!(args->opt[i].flags & ARG_MARK)) {
 				s = E_ARG_MISS_ARG;
-				fprintf(stderr, "\033[1;31mError: '%s' Missing Required Argument !\033[00m", args->opt[i].opt);
+				fprintf(stderr, "\033[1;31mError: '%s' Missing Required Argument !\n\033[00m", args->opt[i].opt);
 			}
 		}
 	}
 	return (s);
+}
+
+static arg_status_t check_args_config(args_t *args)
+{
+	if (!args)
+		return (E_ARG_NULL);
+
+	for (uint32_t i = 0; i < args->nopt; i++)
+		if (!args->opt[i].opt)
+			return (E_ARG_INVALID_CFG);
+
+	return (E_ARG_OK);
 }
 
 /////////////////////////////////////
@@ -191,6 +206,13 @@ int argparse_parse(args_t *args, int ac, char **av)
 		.current = NULL, 
 		.i = &i 
 	};
+
+	s = check_args_config(args);
+
+	if (s < E_ARG_OK) {
+		printf("Error: %s\n", parse_get_string_status(s));
+		return (1);
+	}
 
 	for (i = 1; i < ac; i++) {
 		ctx.current = argparse_get(args, av[i], &s);

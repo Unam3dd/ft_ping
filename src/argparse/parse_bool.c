@@ -24,42 +24,24 @@ static arg_status_t parse_bool(arg_opt_t *arg, char *value)
 {
 	if (!arg || !value)
 		return (E_ARG_NULL);
-
-	size_t cnt = strspn(value, " \t\r\n");
-	uint16_t i = 0;
-
-	static char *keyword[] = { 
-		"true", "TRUE", "True", "t", "1",
-		"false", "False", "False", "f", "0"
+	
+	static struct {
+		const char *keyword;
+		bool_t value;
+	} tab[] = {
+		{ "true", TRUE }, { "TRUE", TRUE },
+		{ "True", TRUE }, { "t",    TRUE },
+		{ "1",    TRUE }, { "false", FALSE },
+		{ "FALSE", FALSE }, { "False", FALSE },
+		{ "f", FALSE }, { "0", FALSE }
 	};
 
-	if (cnt == strlen(value))
-		return (E_ARG_PARSE_NOT_BOOL);
-
-	value += cnt;
-
-	for (i = 0; i < (sizeof(keyword)/sizeof(char *)) / 2; i++) {
-
-		if (strcmp(keyword[i], value))
-			continue ;
-
-		arg->bool = TRUE;
-		
-		ARGPARSE_MARK_ARG(arg);
-
-		return (E_ARG_OK);
-	}
-
-	for (i = 5; i < sizeof(keyword)/sizeof(char *); i++) {
-
-		if (strcmp(keyword[i], value))
-			continue ;
-
-		arg->bool = FALSE;
-		
-		ARGPARSE_MARK_ARG(arg);
-
-		return (E_ARG_OK);
+	for (uint16_t i = 0; i < sizeof(tab)/sizeof(tab[0]); i++) {
+		if (!strcmp(tab[i].keyword, value)) {
+			arg->bool = tab[i].value;
+			ARGPARSE_MARK_ARG(arg);
+			return (E_ARG_OK);
+		}
 	}
 
 	return (E_ARG_PARSE_NOT_BOOL);

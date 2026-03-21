@@ -18,44 +18,39 @@
 //
 ////////////////////////////////////
 
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+
+/////////////////////////////////////
+//
+//			STATIC
+//
+////////////////////////////////////
 
 static arg_status_t parse_numbers(arg_opt_t *arg, const char *n)
 {
 	if (!arg || !n)
 		return (E_ARG_NULL);
 
-	switch (arg->type)
-	{
-		case ARG_SHORT:
-			arg->i16 = (int16_t)strtol(n, NULL, 10);
-			break;
+	int64_t value = 0;
+	char *end = NULL;
 
-		case ARG_INT:
-			arg->i32 = (int32_t)strtol(n, NULL, 10);
-			break;
+	if (*n == 0)
+		return (E_ARG_PARSE_NOT_NBR);
+	
+	errno = 0;
+	value = strtoll(n, &end, 10);
 
-		case ARG_LONG:
-			arg->i64 = (int64_t)strtol(n, NULL, 10);
-			break;
+	if (errno == ERANGE)
+		return (E_ARG_OVERFLOW);
 
-		case ARG_USHORT:
-			arg->u16 = (uint16_t)strtoul(n, NULL, 10);
-			break;
+	if (*end || end == n)
+		return (E_ARG_PARSE_NOT_NBR);
 
-		case ARG_UINT:
-			arg->u32 = (uint32_t)strtoul(n, NULL, 10);
-			break;
-
-		case ARG_ULONG:
-			arg->u64 = (uint64_t)strtoul(n, NULL, 10);
-			break;
-
-		default:
-			return (E_ARG_PARSE_NOT_NBR);
-	}
+	arg->i64 = value;
 
 	ARGPARSE_MARK_ARG(arg);
 

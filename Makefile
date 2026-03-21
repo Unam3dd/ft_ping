@@ -6,7 +6,8 @@ vpath %.c src
 vpath %.h inc
 
 SRCS_ARGPARSE = src/argparse/parse.c \
-				src/argparse/usage.c
+				src/argparse/usage.c \
+				src/argparse/getopt.c
 
 SRCS = $(SRCS_ARGPARSE) \
 	   src/main.c
