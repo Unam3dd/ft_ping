@@ -173,8 +173,8 @@ static inline void argparse_init(args_t *args, arg_opt_t *opt,
 //
 ////////////////////////////////////
 
+arg_opt_t *argparse_getopt(args_t *args, const char *name, const char *alias);
 int argparse_parse(args_t *args, int ac, char **av);
-arg_opt_t *argparse_get(args_t *args, const char *name, const char *alias);
 void argparse_show_usage(const args_t *args);
 
 #endif

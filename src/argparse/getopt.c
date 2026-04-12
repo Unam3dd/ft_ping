@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-arg_opt_t *argparse_get(args_t *args, const char *name, const char *alias)
+arg_opt_t *argparse_getopt(args_t *args, const char *name, const char *alias)
 {
 	if (!args || !name)
 		return (NULL);
