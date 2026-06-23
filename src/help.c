@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_string.c                                     :+:      :+:    :+:   */
+/*   help.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
+/*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/19 15:37:49 by stales            #+#    #+#             */
-/*   Updated: 2026/03/19 15:40:51 by stales           ###   ########.fr       */
+/*   Created: 2026/06/23 22:47:04 by sam0verfl0w       #+#    #+#             */
+/*   Updated: 2026/06/23 22:52:39 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../inc/argparse.h"
+#include "../inc/ft_ping.h"
 
 /////////////////////////////////////
 //
@@ -18,21 +18,17 @@
 //
 ////////////////////////////////////
 
-#include <string.h>
+#include <stdio.h>
 
-static arg_status_t parse_string(arg_opt_t *arg, char *value)
+/////////////////////////////////////
+//
+//			HELP
+//
+////////////////////////////////////
+
+void show_usage(void)
 {
-	if (!arg || !value)
-		return (E_ARG_NULL);
-
-	size_t len = strspn(value, " \t\r\n");
-
-	if (!len || value[len] == 0)
-		return (E_ARG_STRING_EMPTY);
-
-	arg->str = value;
-
-	ARGPARSE_MARK_ARG(arg);
-
-	return (E_ARG_OK);
+	printf("Usage: ft_ping [options] <destination>\nOptions:\n");
+	printf("\t<destination>\tDNS name or IP address\n");
+	printf("\t-c <count>\t\tstop after <count> replies\n");
 }

@@ -6,7 +6,7 @@
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/08 21:15:42 by stales            #+#    #+#             */
-/*   Updated: 2026/03/08 21:18:01 by stales           ###   ########.fr       */
+/*   Updated: 2026/06/23 22:46:59 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 //
 ////////////////////////////////////
 
+#include <stdint.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
@@ -34,5 +35,40 @@ typedef enum e_bool_t
 	FALSE,
 	TRUE
 } bool_t;
+
+/////////////////////////////////////
+//
+//			TYPEDEFS
+//
+////////////////////////////////////
+
+typedef struct s_options_t options_t;
+
+/////////////////////////////////////
+//
+//			STRUCTS
+//
+////////////////////////////////////
+
+struct s_options_t
+{
+	uint32_t count;
+};
+
+/////////////////////////////////////
+//
+//			OPTIONS
+//
+////////////////////////////////////
+
+int parse_arguments(int ac, char **av, options_t *opt);
+
+/////////////////////////////////////
+//
+//			HELP
+//
+////////////////////////////////////
+
+void show_usage(void);
 
 #endif

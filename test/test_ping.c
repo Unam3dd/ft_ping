@@ -30,7 +30,7 @@ unsigned short checksum(void *b, int len)
     unsigned short *buf = b;
     unsigned int sum = 0;
 
-    for (sum = 0; len > 1; len -= 2)
+    for (sum = 0; len > 1; len -= sizeof(*buf))
         sum += *buf++;
 
     if (len == 1)
@@ -44,8 +44,9 @@ unsigned short checksum(void *b, int len)
 
 int main(int ac, char **av)
 {
-	struct icmphdr icmp_hdr;
+	struct icmphdr icmp_hdr, icmp_rcv;
 	struct sockaddr_in sin;
+	socklen_t len = sizeof(icmp_rcv);
 	
 	if (ac != 2) {
 		fprintf(stderr, "%s: <ip>\n", av[0]);
@@ -61,6 +62,7 @@ int main(int ac, char **av)
 
 	memset(&sin, 0, sizeof(sin));
 	memset(&icmp_hdr, 0, sizeof(struct icmphdr));
+	memset(&icmp_rcv, 0, sizeof(struct icmphdr));
 
 	sin.sin_addr.s_addr = inet_addr(av[1]);
 
@@ -76,6 +78,13 @@ int main(int ac, char **av)
 	}
 
 	puts("ICMP packet sent !");
+
+	sleep(5);
+
+	if (recvfrom(fd, &icmp_rcv, sizeof(icmp_hdr), 0, (struct sockaddr *)&sin, &len) < 0)
+		return (1);
+
+	printf("%d\n", icmp_rcv.type);
 
 	close(fd);
 

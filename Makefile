@@ -5,11 +5,8 @@ CFLAGS = -Wall -Wextra -Werror -I$(INCLUDE_DIR) -std=c18
 vpath %.c src
 vpath %.h inc
 
-SRCS_ARGPARSE = src/argparse/parse.c \
-				src/argparse/usage.c \
-				src/argparse/getopt.c
-
-SRCS = $(SRCS_ARGPARSE) \
+SRCS = src/options.c \
+	   src/help.c \
 	   src/main.c
 
 OBJDIR = objs
