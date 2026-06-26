@@ -6,7 +6,7 @@
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/23 22:35:18 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/06/23 22:46:36 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/06/25 23:04:30 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,8 +93,6 @@ int parse_arguments(int ac, char **av, options_t *options)
 		show_usage();
 		return (1);
 	}
-
-	printf("Parsing success !\n");
 
 	return (0);
 }
