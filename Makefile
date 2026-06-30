@@ -1,12 +1,15 @@
 NAME = ft_ping
 INCLUDE_DIR = inc
-CFLAGS = -Wall -Wextra -Werror -I$(INCLUDE_DIR) -std=c18
+CFLAGS = -Wall -Wextra -Werror -I$(INCLUDE_DIR)
 
 vpath %.c src
 vpath %.h inc
 
-SRCS = src/options.c \
+SRCS = src/init.c \
+	   src/options.c \
 	   src/help.c \
+	   src/ping.c \
+	   src/checksum.c \
 	   src/main.c
 
 OBJDIR = objs

@@ -43,17 +43,13 @@ static int parse_options(int opt, options_t *options)
 			options->count = strtol(optarg, NULL, 10);
 			break;
 
-		case 'h':
-			show_usage();
-			return (1);
-
 		case '?':
 			fprintf(stderr, "option inconnue: -%c\n", optopt);
 			show_usage();
 			return (1);
-		
+
+		case 'h':
 		default:
-			fprintf(stderr, "Error: invalid argument !\n");
 			show_usage();
 			return (1);
 	}
