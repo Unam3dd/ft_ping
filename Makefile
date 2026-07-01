@@ -8,8 +8,9 @@ vpath %.h inc
 SRCS = src/init.c \
 	   src/options.c \
 	   src/help.c \
-	   src/ping.c \
+	   src/echo.c \
 	   src/checksum.c \
+	   src/display.c \
 	   src/main.c
 
 OBJDIR = objs

@@ -6,7 +6,7 @@
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/08 21:15:42 by stales            #+#    #+#             */
-/*   Updated: 2026/06/30 22:21:49 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/07/01 17:54:29 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,18 @@
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 #include <sys/epoll.h>
+
+/////////////////////////////////////
+//
+//			DEFINES
+//
+////////////////////////////////////
+
+#ifndef NI_MAXHOST
+#define NI_MAXHOST 1025
+#endif
 
 /////////////////////////////////////
 //
@@ -54,6 +65,7 @@ typedef struct sockaddr_in sin_t;
 typedef struct icmphdr icmphdr_t;
 typedef struct s_options_t options_t;
 typedef struct s_context_t context_t;
+typedef struct s_icmp_packet_t icmp_packet_t;
 
 /////////////////////////////////////
 //
@@ -68,9 +80,19 @@ struct s_options_t
 
 struct s_context_t
 {
-	sin_t dst;
-	fd_t fd;
-	fd_t efd;
+	char 	ni_name[NI_MAXHOST];
+	sin_t  	dst;
+	fd_t 	fd;
+	fd_t 	efd;
+	fd_t    tfd;
+	uint32_t seq;
+};
+
+struct s_icmp_packet_t
+{
+	icmphdr_t 		hdr;
+	struct timeval 	timestamp;
+	uint8_t 		data[0x28];
 };
 
 /////////////////////////////////////
@@ -112,6 +134,15 @@ unsigned short checksum(void *b, int len);
 //
 ////////////////////////////////////
 
-int send_ping(const context_t *ctx, const sin_t *dst, const icmphdr_t *icmp);
+int 	send_echo(const fd_t fd, const sin_t *sin, icmp_packet_t *pkt);
+int     recv_echo(const fd_t fd, const context_t *ctx);
+
+/////////////////////////////////////
+//
+//			DISPLAY
+//
+////////////////////////////////////
+
+void display_response(const context_t *ctx, const icmphdr_t *hdr, const size_t size);
 
 #endif

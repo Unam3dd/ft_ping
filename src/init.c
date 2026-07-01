@@ -18,6 +18,7 @@
 //
 ////////////////////////////////////
 
+#include <bits/types/struct_itimerspec.h>
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -27,6 +28,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/timerfd.h>
 
 /////////////////////////////////////
 //
@@ -34,10 +36,13 @@
 //
 ////////////////////////////////////
 
-static int resolve_host(const char *dest, sin_t *sin)
+static int resolve_host(const char *dest, sin_t *dst, char *cname, const size_t csize)
 {
 	struct addrinfo spec, *res = NULL;
 	int status = 0;
+
+	if (!dest || !dst || !cname || !csize)
+		return (1);
 	
 	memset(&spec, 0, sizeof(spec));
 
@@ -47,12 +52,20 @@ static int resolve_host(const char *dest, sin_t *sin)
 	status = getaddrinfo(dest, NULL, &spec, &res);
 
 	if (status) {
-		fprintf(stderr, "error: %s\n", gai_strerror(status));
+		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
 		return (1);
 	}
 
-	if (sin)
-		*sin = *(sin_t *)res->ai_addr;
+	if (dst)
+		*dst = *(sin_t *)res->ai_addr;
+
+	status = getnameinfo((struct sockaddr *)res->ai_addr, sizeof(sin_t), cname, csize, NULL, 0, 0);
+
+	if (status) {
+		freeaddrinfo(res);
+		fprintf(stderr, "getnameinfo error: %s\n", gai_strerror(status));
+		return (1);
+	}
 
 	freeaddrinfo(res);
 
@@ -73,16 +86,18 @@ int init_context(context_t *ctx, const char *dest)
 	if (ctx->fd)
 		return (0);
 
-	struct epoll_event ev = { EPOLLIN | EPOLLET | EPOLLOUT, .data.fd = 0 };
+	struct itimerspec its = { .it_value.tv_sec = 1, .it_value.tv_nsec = 0, .it_interval.tv_sec = 1, .it_interval.tv_nsec = 0 };
 
-	ctx->fd = socket(AF_INET, SOCK_RAW | SOCK_NONBLOCK, IPPROTO_ICMP);
+	struct epoll_event ev = { EPOLLIN, .data.fd = 0 };
+
+	ctx->fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	if (ctx->fd < 0) {
 		perror("init_context");
 		return (1);
 	}
 
-	if (resolve_host(dest, &ctx->dst)) {
+	if (resolve_host(dest, &ctx->dst, ctx->ni_name, sizeof(ctx->ni_name))) {
 		close(ctx->fd);
 		return (1);
 	}
@@ -98,6 +113,20 @@ int init_context(context_t *ctx, const char *dest)
 	ev.data.fd = ctx->fd;
 
 	if (epoll_ctl(ctx->efd, EPOLL_CTL_ADD, ctx->fd, &ev) < 0) {
+		perror("init_context");
+		close(ctx->fd);
+		close(ctx->efd);
+		return (1);
+	}
+
+	ctx->tfd = timerfd_create(CLOCK_MONOTONIC, 0);
+
+	timerfd_settime(ctx->tfd, 0, &its, NULL);
+	
+	ev.data.fd = ctx->tfd;
+	ev.events = EPOLLIN;
+
+	if (epoll_ctl(ctx->efd, EPOLL_CTL_ADD, ctx->tfd, &ev) < 0) {
 		perror("init_context");
 		close(ctx->fd);
 		close(ctx->efd);
@@ -123,8 +152,14 @@ void close_context(context_t *ctx)
 		return ;
 	}
 
+	if (epoll_ctl(ctx->efd, EPOLL_CTL_DEL, ctx->tfd, NULL) < 0) {
+		perror("close_context");
+		return ;
+	}
+
 	close(ctx->fd);
 	close(ctx->efd);
+	close(ctx->tfd);
 
 	memset(ctx, 0, sizeof(context_t));
 }
