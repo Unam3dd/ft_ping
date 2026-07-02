@@ -49,7 +49,6 @@ int recv_echo(const fd_t fd, const context_t *ctx)
 	char buf[2048];
 	struct iphdr *iphdr = NULL;
 	icmp_packet_t *pkt = NULL;
-	struct icmphdr_t *ihdr = NULL;
 	sin_t sin;
 	socklen_t len = sizeof(sin);
 	int bytes = 0;
@@ -69,9 +68,9 @@ int recv_echo(const fd_t fd, const context_t *ctx)
 
 	if (pkt->hdr.type == ICMP_DEST_UNREACH) {
 
-		iphdr = (struct iphdr*)(pkt + sizeof(icmphdr_t));
+		iphdr = (struct iphdr*)(buf + (iphdr->ihl * 4) + sizeof(icmphdr_t));
 
-		printf("%s\n", inet_ntoa(*(struct in_addr*)&iphdr->saddr));
+		pkt = (icmp_packet_t*)(buf + (iphdr->ihl * 4) + sizeof(icmphdr_t) + sizeof(struct iphdr));
 
 		display_response(ctx, (const iphdr_t *)iphdr, (const icmp_packet_t*)pkt, sizeof(icmp_packet_t));
 		
