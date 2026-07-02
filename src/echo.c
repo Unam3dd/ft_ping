@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
+#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/ip.h>
 #include <netinet/icmp6.h>
@@ -47,7 +48,8 @@ int recv_echo(const fd_t fd, const context_t *ctx)
 
 	char buf[2048];
 	struct iphdr *iphdr = NULL;
-	icmphdr_t *icmphdr = NULL;
+	icmp_packet_t *pkt = NULL;
+	struct icmphdr_t *ihdr = NULL;
 	sin_t sin;
 	socklen_t len = sizeof(sin);
 	int bytes = 0;
@@ -62,15 +64,22 @@ int recv_echo(const fd_t fd, const context_t *ctx)
 		return (-1);
 	}
 
-	iphdr = (struct iphdr *)buf;
-	icmphdr = (icmphdr_t *)(buf + (iphdr->ihl * 4));
+	iphdr = (iphdr_t*)buf;
+	pkt = (icmp_packet_t *)(buf + (iphdr->ihl * 4));
 
-	if (icmphdr->type == ICMP_ECHOREPLY && icmphdr->un.echo.id == (getpid() & 0xFFFF)) {
-		if (!icmphdr->code)
-			display_response(ctx, (const icmphdr_t*)icmphdr, sizeof(icmp_packet_t));
+	if (pkt->hdr.type == ICMP_DEST_UNREACH) {
 
-		// handle error here
+		iphdr = (struct iphdr*)(pkt + sizeof(icmphdr_t));
+
+		printf("%s\n", inet_ntoa(*(struct in_addr*)&iphdr->saddr));
+
+		display_response(ctx, (const iphdr_t *)iphdr, (const icmp_packet_t*)pkt, sizeof(icmp_packet_t));
+		
+		return (bytes);
 	}
+
+	if (pkt->hdr.type == ICMP_ECHOREPLY && pkt->hdr.un.echo.id == (getpid() & 0xFFFF))
+		display_response(ctx, (const iphdr_t *)iphdr, (const icmp_packet_t*)pkt, sizeof(icmp_packet_t));
 
 	return (bytes);
 }

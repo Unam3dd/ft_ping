@@ -63,6 +63,7 @@ typedef enum e_bool_t
 typedef int fd_t;
 typedef struct sockaddr_in sin_t;
 typedef struct icmphdr icmphdr_t;
+typedef struct iphdr iphdr_t;
 typedef struct s_options_t options_t;
 typedef struct s_context_t context_t;
 typedef struct s_icmp_packet_t icmp_packet_t;
@@ -81,6 +82,7 @@ struct s_options_t
 struct s_context_t
 {
 	char 	ni_name[NI_MAXHOST];
+	struct timeval last_ms;
 	sin_t  	dst;
 	fd_t 	fd;
 	fd_t 	efd;
@@ -143,6 +145,6 @@ int     recv_echo(const fd_t fd, const context_t *ctx);
 //
 ////////////////////////////////////
 
-void display_response(const context_t *ctx, const icmphdr_t *hdr, const size_t size);
+void display_response(const context_t *ctx, const iphdr_t *iphdr, const icmp_packet_t *pkt, const size_t size);
 
 #endif

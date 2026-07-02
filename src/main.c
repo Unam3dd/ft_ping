@@ -82,6 +82,8 @@ static void loop(context_t *ctx, options_t *opt)
 				if (send_echo(ctx->fd, &ctx->dst, &icmp) < 0)
 					perror("send_echo");
 
+				ctx->last_ms = icmp.timestamp;
+
 				icmp.hdr.un.echo.sequence = biginc(icmp.hdr.un.echo.sequence, &ctx->seq);
 			}
 
