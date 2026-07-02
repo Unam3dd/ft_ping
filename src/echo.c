@@ -72,6 +72,8 @@ int recv_echo(const fd_t fd, const context_t *ctx)
 
 		pkt = (icmp_packet_t*)(buf + (iphdr->ihl * 4) + sizeof(icmphdr_t) + sizeof(struct iphdr));
 
+		pkt->hdr.type = ICMP_DEST_UNREACH;
+
 		display_response(ctx, (const iphdr_t *)iphdr, (const icmp_packet_t*)pkt, sizeof(icmp_packet_t));
 		
 		return (bytes);
