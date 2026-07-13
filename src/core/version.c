@@ -1,40 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   checksum.c                                         :+:      :+:    :+:   */
+/*   version.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/30 22:00:09 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/06/30 22:02:32 by sam0verfl0w      ###   ########.fr       */
+/*   Created: 2026/07/03 16:08:52 by sam0verfl0w       #+#    #+#             */
+/*   Updated: 2026/07/03 16:10:38 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/ft_ping.h"
+#include "../../inc/ft_ping.h"
 
 /////////////////////////////////////
 //
-//			CHECKSUM
+//			INCLUDES
 //
 ////////////////////////////////////
 
-unsigned short checksum(void *b, int len)
+#include <stdio.h>
+
+/////////////////////////////////////
+//
+//			VERSION
+//
+////////////////////////////////////
+
+void show_version(void)
 {
-	if (!b || len < 0)
-		return (0);
-
-    unsigned short *buf = (unsigned short*)b;
-    uint64_t sum = 0;
-
-    for (sum = 0; len > 1; len -= sizeof(*buf))
-        sum += *buf++;
-
-    if (len == 1)
-        sum += *(unsigned char*)buf;
-
-    sum = (sum >> 16) + (sum & 0xFFFF);
-    sum += (sum >> 16);
-
-    return (unsigned short)(~sum);
+	printf("Version ft_ping: %s\tAuthor: %s\t\nCompilation Date: %s %s\n", 
+		FT_PING_VERSION, FT_PING_AUTHOR, __DATE__, __TIME__);
 }
 

@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   help.c                                             :+:      :+:    :+:   */
+/*   options.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/23 22:47:04 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/06/23 22:52:39 by sam0verfl0w      ###   ########.fr       */
+/*   Created: 2026/07/02 16:56:56 by sam0verfl0w       #+#    #+#             */
+/*   Updated: 2026/07/03 16:04:49 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/ft_ping.h"
+#include "../../inc/ft_ping.h"
 
 /////////////////////////////////////
 //
@@ -18,17 +18,31 @@
 //
 ////////////////////////////////////
 
+#include <errno.h>
+#include <getopt.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 /////////////////////////////////////
 //
-//			HELP
+//			OPTIONS
 //
 ////////////////////////////////////
 
-void show_usage(void)
+opt_t *get_options(size_t *size)
 {
-	printf("Usage: ft_ping [options] <destination>\nOptions:\n");
-	printf("\t<destination>\tDNS name or IP address\n");
-	printf("\t-c <count>\t\tstop after <count> replies\n");
+	static opt_t options[] = { 
+		[OPT_HOST_INDEX] = ARGOPT("host", TRUE, STRING, sizeof(char *)),
+		[OPT_COUNT_INDEX] = ARGOPT("count", FALSE, UINT_64, sizeof(uint64_t)),
+		[OPT_VERBOSE_INDEX] = ARGOPT("verbose", FALSE, BOOL, sizeof(bool_t)),
+		[OPT_TTL_INDEX] = ARGOPT("ttl", FALSE, UINT_32, sizeof(uint32_t))
+	};
+
+	if (size)
+		*size = sizeof(options)/sizeof(opt_t);
+
+	return (options);
 }
+

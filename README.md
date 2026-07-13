@@ -20,6 +20,7 @@
 - [🎯 Objectif](#-objectif)
 - [💡 Qu'est-ce que `ping` ?](#-quest-ce-que-ping-)
 - [📡 ICMP & RFC 792](#-icmp--rfc-792)
+- [⏱️ RTT & statistiques](#️-rtt--statistiques)
 - [🏗️ Exigences du projet](#️-exigences-du-projet)
 - [⚙️ Options](#️-options)
 - [🚀 Utilisation](#-utilisation)
@@ -127,6 +128,154 @@ Chaque message ICMP est encapsulé dans un datagramme IP avec notamment :
 | **Protocol** | `1` (ICMP) |
 | **TTL** | Décrémenté à chaque saut — expiré → ICMP Time Exceeded (type 11) |
 | **Header Checksum** | Checksum de l'en-tête IP |
+
+---
+
+## ⏱️ RTT & statistiques
+
+### Qu'est-ce que le RTT ?
+
+**RTT** (*Round-Trip Time*) = temps aller-retour d'un paquet ICMP, en millisecondes.
+
+```
+  Envoi Echo Request          Réception Echo Reply
+        |                              |
+        t1                             t2
+        |<-------- RTT = t2 - t1 ----->|
+```
+
+Dans `ft_ping`, le timestamp est enregistré dans le paquet à l'envoi (`gettimeofday`), puis recalculé à la réception via `get_ms()`.
+
+---
+
+### Structure `rtt_t`
+
+La structure `rtt_t` (dans `src/core/rtt.c`) accumule les statistiques **sans stocker chaque RTT en mémoire** :
+
+| Champ | Rôle |
+|:---|:---|
+| `min` | Plus petit RTT observé |
+| `max` | Plus grand RTT observé |
+| `sum` | Somme de tous les RTT → sert à calculer la **moyenne** |
+| `sumsq` | Somme des carrés de tous les RTT → sert à calculer le **mdev** |
+| `count` | Nombre de RTT enregistrés |
+| `elapsed_ms` | Durée totale du ping (ligne `time 1001ms`) |
+| `start` | Horodatage du début du ping |
+
+---
+
+### Formules utilisées
+
+#### Moyenne (avg)
+
+```
+avg = sum / count
+```
+
+#### Variance
+
+```
+variance = (sumsq / count) - (avg × avg)
+```
+
+En développant :
+
+```
+variance = (sumsq / count) - (sum / count)²
+```
+
+#### mdev (mean deviation)
+
+Le **mdev** est l'**écart-type** des RTT. Il mesure la **stabilité** du réseau :
+
+- mdev **faible** → temps de réponse réguliers
+- mdev **élevé** → temps de réponse instables (jitter, congestion…)
+
+```
+mdev = sqrt(variance)
+```
+
+#### Ligne affichée à la fin
+
+```
+rtt min/avg/max/mdev = 11.800/12.050/12.300/0.250 ms
+```
+
+---
+
+### Exemple chiffré
+
+RTT reçus : `10 ms`, `12 ms`, `14 ms`, `50 ms`
+
+**Étape 1 — Accumulation à chaque paquet**
+
+```
+sum   = 10 + 12 + 14 + 50       = 86
+sumsq = 10² + 12² + 14² + 50²   = 100 + 144 + 196 + 2500 = 2940
+count = 4
+min   = 10
+max   = 50
+```
+
+**Étape 2 — Calcul final**
+
+```
+avg      = 86 / 4           = 21.5 ms
+variance = 2940/4 - 21.5²   = 735 - 462.25 = 272.75
+mdev     = sqrt(272.75)     ≈ 16.516 ms
+```
+
+Résultat :
+
+```
+rtt min/avg/max/mdev = 10.000/21.500/50.000/16.516 ms
+```
+
+Le mdev est élevé car le paquet à `50 ms` perturbe fortement la moyenne.
+
+---
+
+### Pourquoi `sumsq` sans tout stocker en mémoire ?
+
+**Approche naïve** : garder un tableau `[10, 12, 14, 50]` puis calculer la moyenne des écarts.
+
+**Approche ping** : à chaque paquet, mettre à jour seulement `sum` et `sumsq`.
+
+Les deux méthodes donnent le **même résultat** grâce à cette identité mathématique :
+
+```
+variance = moyenne des (xi - avg)²
+         = moyenne des (xi²) - avg²
+         = (sumsq / n) - (sum / n)²
+```
+
+Donc `sum` + `sumsq` contiennent toute l'information nécessaire pour la moyenne et le mdev, en **mémoire constante O(1)**.
+
+---
+
+### Correspondance avec le code
+
+```c
+// À chaque echo reply reçu (rtt_add)
+r->sum   += ms;
+r->sumsq += ms * ms;
+r->count++;
+
+// À la fin (rtt_show)
+avg      = r->sum / r->count;
+variance = (r->sumsq / r->count) - (avg * avg);
+mdev     = sqrt(variance);
+```
+
+---
+
+### Références RTT
+
+| Source | Lien |
+|:---|:---|
+| GNU inetutils `ping.c` | [gnu.org/software/inetutils](https://www.gnu.org/software/inetutils/) |
+| iputils `ping_common.c` | [github.com/iputils/iputils](https://github.com/iputils/iputils/blob/master/ping_common.c) |
+| Explication du mdev | [serverfault.com — What does mdev mean in ping](https://serverfault.com/questions/333116/what-does-mdev-mean-in-ping8) |
 
 ---
 
