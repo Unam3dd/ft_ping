@@ -38,6 +38,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 		{ "usage", no_argument, NULL,       'u' },
 		{ "ttl", required_argument, NULL,    't' },
 		{ "numeric", no_argument, NULL,     'n' },
+		{ "deadline", required_argument, NULL, 'w' },
 		{ 0, 0, 0, 0 }
 	};
 	
@@ -46,7 +47,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 	if (!option)
 		return (1);
 
-	while ((o = getopt_long(ac, av, "c:vVhut:n", opt, NULL)) != -1) {
+	while ((o = getopt_long(ac, av, "c:vVhut:nw:", opt, NULL)) != -1) {
 
 		switch (o) {
 			case 'c':
@@ -79,6 +80,29 @@ int parse_arguments(int ac, char **av, opt_t *option)
 						return (1);
 					}
 				}
+				break;
+
+			case 'w':
+				errno = 0;
+				option[OPT_DEADLINE_INDEX].u64 = parse_unumber(optarg);
+
+				if (errno) {
+					fprintf(stderr, "ft_ping: invalid value '%s'\n", optarg);
+					return (1);
+				}
+
+				if (option[OPT_DEADLINE_INDEX].u64 < 1) {
+					fprintf(stderr, "ft_ping: option value too small: %lu\n",
+						option[OPT_DEADLINE_INDEX].u64);
+					return (1);
+				}
+
+				if (option[OPT_DEADLINE_INDEX].u64 > 2147483647ULL) {
+					fprintf(stderr, "ft_ping: option value too big: %lu\n",
+			               option[OPT_DEADLINE_INDEX].u64);
+					return (1);
+				}
+				
 				break;
 
 			case 'v':

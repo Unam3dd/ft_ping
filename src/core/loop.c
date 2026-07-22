@@ -77,6 +77,16 @@ int ping_loop(context_t *ctx)
 
 	signal(SIGINT, sig_handler);
 	signal(SIGABRT, sig_handler);
+	signal(SIGALRM, sig_handler);
+
+	if (opt[OPT_DEADLINE_INDEX].u64) {
+		if (opt[OPT_DEADLINE_INDEX].u64 > 2147483647ULL) {
+			fprintf(stderr, "ft_ping: option value too big: %lu\n",
+				opt[OPT_DEADLINE_INDEX].u64);
+			return (1);
+		}
+		alarm((unsigned int)opt[OPT_DEADLINE_INDEX].u64);
+	}
 
 	bytes = send_icmp_echo(ctx, ctx->fd, &ctx->sin);
 

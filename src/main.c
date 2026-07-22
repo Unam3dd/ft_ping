@@ -30,8 +30,8 @@ int main(int ac, char **av)
 	if (ret == 2)
 		return (0);
 
-	if (ret == 1)
-		return (1);
+	if (ret)
+		return (ret);
 
 	return (ping_program(&ctx, options[OPT_HOST_INDEX].value));
 }

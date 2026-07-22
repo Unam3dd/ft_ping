@@ -35,8 +35,7 @@ void show_stats(const icmp_stat_t *s, const rtt_t *r)
 						/ (float)s->transmitted) * 100));
 
 	printf("--- %s ping statistics ---\n", o[OPT_HOST_INDEX].str);
-	printf("%ld packets transmitted, %ld received, %d%% packet loss, time %lums\n",
-		s->transmitted, s->received, (uint32_t)(percentage + 0.5f),
-		r->elapsed_ms);
+	printf("%ld packets transmitted, %ld received, %d%% packet loss\n",
+		s->transmitted, s->received, (uint32_t)(percentage + 0.5f));
 	rtt_show(r);
 }

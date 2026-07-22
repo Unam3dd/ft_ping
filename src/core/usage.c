@@ -34,6 +34,7 @@ void show_usage(void)
 	puts("\t-v, --verbose\t\tverbose output\n");
 	puts("\t-n, --numeric\t\tnumeric output only (no reverse DNS)\n");
 	puts("\t-c, --count=NUMBER\tstop after sending NUMBER packets\n");
+	puts("\t-w, --deadline=SECS\tstop after SECONDS, regardless of replies\n");
 	puts("\t    --ttl=NUMBER\tset IP time to live\n");
 	puts("\t-?, --help\t\tshow help\n");
 	puts("\t    --usage\t\tshow help\n");
