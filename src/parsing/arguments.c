@@ -37,6 +37,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 		{ "help", no_argument, NULL,        'h' },
 		{ "usage", no_argument, NULL,       'u' },
 		{ "ttl", required_argument, NULL,    't' },
+		{ "numeric", no_argument, NULL,     'n' },
 		{ 0, 0, 0, 0 }
 	};
 	
@@ -45,7 +46,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 	if (!option)
 		return (1);
 
-	while ((o = getopt_long(ac, av, "c:vVhut:", opt, NULL)) != -1) {
+	while ((o = getopt_long(ac, av, "c:vVhut:n", opt, NULL)) != -1) {
 
 		switch (o) {
 			case 'c':
@@ -82,6 +83,10 @@ int parse_arguments(int ac, char **av, opt_t *option)
 
 			case 'v':
 				option[OPT_VERBOSE_INDEX].bool = TRUE;
+				break;
+
+			case 'n':
+				option[OPT_NUMERIC_INDEX].bool = TRUE;
 				break;
 
 			case 'V':

@@ -36,7 +36,7 @@ static int start_program(sin_t *sin, const char *host)
 
 	memset(buf, 0, sizeof(buf));
 
-	if (!inet_ntop(AF_INET, (struct sockaddr *)&sin->sin_addr, buf, sizeof(buf))) {
+	if (!inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf))) {
 		perror("inet_ntop");
 		return (1);
 	}
@@ -96,15 +96,31 @@ static void close_sockets(context_t *ctx)
 
 int ping_program(context_t *ctx, const char *host)
 {
+	static char	numeric_host[INET_ADDRSTRLEN];
+	opt_t		*opt;
+
 	if (!ctx || !host)
 		return (1);
 
+	opt = get_options(NULL);
 	if (init_sockets(ctx))
 		return (1);
 
 	if (resolve_host(host, &ctx->sin)) {
 		close_sockets(ctx);
 		return (1);
+	}
+
+	if (opt[OPT_NUMERIC_INDEX].bool) {
+		memset(numeric_host, 0, sizeof(numeric_host));
+		if (!inet_ntop(AF_INET, &ctx->sin.sin_addr, numeric_host,
+				sizeof(numeric_host))) {
+			perror("inet_ntop");
+			close_sockets(ctx);
+			return (1);
+		}
+		opt[OPT_HOST_INDEX].str = numeric_host;
+		host = numeric_host;
 	}
 
 	if (start_program(&ctx->sin, host)) {

@@ -102,6 +102,7 @@ enum e_opt_index_t
 	OPT_COUNT_INDEX,
 	OPT_VERBOSE_INDEX,
 	OPT_TTL_INDEX,
+	OPT_NUMERIC_INDEX,
 };
 
 /////////////////////////////////////

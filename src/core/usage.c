@@ -32,6 +32,7 @@ void show_usage(void)
 	puts("Send ICMP ECHO_REQUEST packets to network hosts.");
 	puts("Options:");
 	puts("\t-v, --verbose\t\tverbose output\n");
+	puts("\t-n, --numeric\t\tnumeric output only (no reverse DNS)\n");
 	puts("\t-c, --count=NUMBER\tstop after sending NUMBER packets\n");
 	puts("\t    --ttl=NUMBER\tset IP time to live\n");
 	puts("\t-?, --help\t\tshow help\n");

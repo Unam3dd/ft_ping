@@ -21,11 +21,14 @@
 
 void show_stats(const icmp_stat_t *s, const rtt_t *r)
 {
+	const opt_t	*o;
+	float		percentage;
+
 	if (!s || !r)
 		return;
 
-	const opt_t *o = get_options(NULL);
-	float percentage = 0;
+	o = get_options(NULL);
+	percentage = 0;
 
 	if (s->transmitted)
 		percentage = (float)(100 - (((float)s->received
