@@ -71,20 +71,21 @@ $(DIST)$(NAME): $(DIST) $(OBJDIR) $(OBJS)
 $(OBJDIR):
 	mkdir -p $(sort $(addprefix $(OBJDIR)/, $(dir $(SRCS))))
 
-$(OBJDIR)/%.o: %.c 
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TEST_UNIT_BIN): $(DIST) $(LIB_OBJS) $(TEST_UNIT_SRCS)
+$(TEST_UNIT_BIN): $(DIST) $(OBJDIR) $(LIB_OBJS) $(TEST_UNIT_SRCS)
 	$(CC) $(CFLAGS) $(TEST_INC) $(TEST_UNIT_SRCS) $(LIB_OBJS) -o $@ -lm
 
-$(TEST_CMP_BIN): $(DIST) test/cmp/test_cmp_ping.c $(DIST)$(NAME)
+$(TEST_CMP_BIN): $(DIST) $(DIST)$(NAME) test/cmp/test_cmp_ping.c
 	$(CC) $(CFLAGS) -DFT_PING_BIN=\"$(CURDIR)/$(DIST)$(NAME)\" \
 		test/cmp/test_cmp_ping.c -o $@
 
 test: $(TEST_UNIT_BIN)
 	./$(TEST_UNIT_BIN)
 
-test_cmp: $(TEST_CMP_BIN) $(DIST)$(NAME)
+test_cmp: $(TEST_CMP_BIN)
 	./$(TEST_CMP_BIN)
 
 test_all: test test_cmp

@@ -35,6 +35,7 @@ void	test_parse_arguments(void)
 {
 	opt_t	*o = NULL;
 	char	*av_help[] = {"ft_ping", "-h", NULL};
+	char	*av_qmark[] = {"ft_ping", "-?", NULL};
 	char	*av_ver[] = {"ft_ping", "-V", NULL};
 	char	*av_ok[] = {"ft_ping", "-v", "-n", "-c", "3", "-t", "64",
 		"-w", "5", "127.0.0.1", NULL};
@@ -50,6 +51,10 @@ void	test_parse_arguments(void)
 	reset_options();
 	ret = parse_arguments(2, av_help, o);
 	TEST_ASSERT(ret == 1, "-h returns 1 (usage)");
+
+	reset_options();
+	ret = parse_arguments(2, av_qmark, o);
+	TEST_ASSERT(ret == 1, "-? returns 1 (usage)");
 
 	reset_options();
 	ret = parse_arguments(2, av_ver, o);

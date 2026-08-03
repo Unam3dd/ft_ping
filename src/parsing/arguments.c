@@ -43,11 +43,27 @@ int parse_arguments(int ac, char **av, opt_t *option)
 	};
 	
 	int o = 0;
+	int i = 0;
 
 	if (!option)
 		return (1);
 
-	while ((o = getopt_long(ac, av, "c:vVhut:nw:", opt, NULL)) != -1) {
+	/* Subject requires -? for help; also handle it before getopt
+	 * (and in shells where ? is not expanded away). */
+	i = 1;
+	while (i < ac)
+	{
+		if (av[i] && (!strcmp(av[i], "-?") || !strcmp(av[i], "--help")
+				|| !strcmp(av[i], "--usage")))
+		{
+			show_usage();
+			return (1);
+		}
+		i++;
+	}
+
+	opterr = 0;
+	while ((o = getopt_long(ac, av, "c:vVhut:nw:?", opt, NULL)) != -1) {
 
 		switch (o) {
 			case 'c':
@@ -99,7 +115,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 
 				if (option[OPT_DEADLINE_INDEX].u64 > 2147483647ULL) {
 					fprintf(stderr, "ft_ping: option value too big: %lu\n",
-			               option[OPT_DEADLINE_INDEX].u64);
+						option[OPT_DEADLINE_INDEX].u64);
 					return (1);
 				}
 				

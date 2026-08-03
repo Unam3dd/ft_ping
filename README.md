@@ -2,96 +2,96 @@
 
 # 🏓 ft_ping
 
-### *Recoder `ping` — une plongée dans ICMP et les réseaux IPv4*
+### *Recoding `ping` — a dive into ICMP and IPv4 networking*
 
 [![42](https://img.shields.io/badge/42-Project-000000?style=for-the-badge&logo=42&logoColor=white)](https://42.fr)
 [![Language](https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c&logoColor=white)](https://en.wikipedia.org/wiki/C_(programming_language))
 [![RFC](https://img.shields.io/badge/RFC-792-blue?style=for-the-badge)](https://www.rfc-editor.org/rfc/rfc792)
 [![Reference](https://img.shields.io/badge/Reference-inetutils--2.0-green?style=for-the-badge)](https://www.gnu.org/software/inetutils/)
 
-> 🌐 Tester l'accessibilité d'une machine sur le réseau IP et mesurer le temps aller-retour (RTT).
+> 🌐 Test the reachability of a host on an IP network and measure the round-trip time (RTT).
 
 </div>
 
 ---
 
-## 📖 Table des matières
+## 📖 Table of contents
 
-- [🎯 Objectif](#-objectif)
-- [💡 Qu'est-ce que `ping` ?](#-quest-ce-que-ping-)
+- [🎯 Goal](#-goal)
+- [💡 What is `ping`?](#-what-is-ping)
 - [📡 ICMP & RFC 792](#-icmp--rfc-792)
-- [⏱️ RTT & statistiques](#️-rtt--statistiques)
-- [🏗️ Exigences du projet](#️-exigences-du-projet)
+- [⏱️ RTT & statistics](#️-rtt--statistics)
+- [🏗️ Project requirements](#️-project-requirements)
 - [⚙️ Options](#️-options)
-- [🚀 Utilisation](#-utilisation)
+- [🚀 Usage](#-usage)
 - [🔧 Compilation](#-compilation)
-- [📋 Critères d'évaluation](#-critères-dévaluation)
-- [🎁 Partie bonus](#-partie-bonus)
-- [📚 Références](#-références)
+- [📋 Evaluation criteria](#-evaluation-criteria)
+- [🎁 Bonus part](#-bonus-part)
+- [📚 References](#-references)
 
 ---
 
-## 🎯 Objectif
+## 🎯 Goal
 
-**ft_ping** est un projet 42 qui consiste à **recoder la commande `ping`** en langage **C**, sans appeler le binaire système ni s'inspirer de ses sources.
+**ft_ping** is a 42 project that consists in **recoding the `ping` command** in **C**, without calling the system binary or using its sources.
 
-L'objectif est de comprendre en profondeur :
+The goal is to deeply understand:
 
-- 🔹 Le protocole **ICMP** (Internet Control Message Protocol)
-- 🔹 L'envoi et la réception de **paquets IPv4**
-- 🔹 La mesure du **temps aller-retour** (Round-Trip Time)
-- 🔹 La gestion des **erreurs réseau** et des options en ligne de commande
+- 🔹 The **ICMP** protocol (Internet Control Message Protocol)
+- 🔹 Sending and receiving **IPv4 packets**
+- 🔹 Measuring **round-trip time** (Round-Trip Time)
+- 🔹 Handling **network errors** and command-line options
 
 ---
 
-## 💡 Qu'est-ce que `ping` ?
+## 💡 What is `ping`?
 
-`ping` est une commande qui permet de **tester l'accessibilité** d'une autre machine via le réseau IP. Elle envoie des paquets **ICMP Echo Request** et attend des **ICMP Echo Reply** en retour.
+`ping` is a command used to **test the reachability** of another host over an IP network. It sends **ICMP Echo Request** packets and waits for **ICMP Echo Reply** packets in return.
 
 ```
   ┌──────────┐                              ┌──────────┐
-  │  Hôte A  │  ──── ICMP Echo Request ───► │  Hôte B  │
+  │  Host A  │  ──── ICMP Echo Request ───► │  Host B  │
   │ (ft_ping)│  ◄─── ICMP Echo Reply  ───── │          │
   └──────────┘                              └──────────┘
          │                                          │
-         └──────────── RTT = temps aller-retour ────┘
+         └──────────── RTT = round-trip time ───────┘
 ```
 
-En pratique, `ping` affiche pour chaque réponse :
+In practice, for each reply `ping` displays:
 
-- 📦 Le nombre d'octets reçus
-- 🏷️ L'adresse source de la réponse
-- 🔢 Le numéro de séquence ICMP
-- ⏱️ Le **TTL** (Time To Live) du paquet IP
-- ⚡ Le **temps de réponse** en millisecondes
+- 📦 The number of bytes received
+- 🏷️ The source address of the reply
+- 🔢 The ICMP sequence number
+- ⏱️ The **TTL** (Time To Live) of the IP packet
+- ⚡ The **response time** in milliseconds
 
 ---
 
 ## 📡 ICMP & RFC 792
 
-L'**ICMP** (*Internet Control Message Protocol*) est défini dans la **[RFC 792](https://www.rfc-editor.org/rfc/rfc792)** (septembre 1981, J. Postel, ISI). Il fait partie intégrante d'IP et **doit être implémenté par chaque module IP**.
+**ICMP** (*Internet Control Message Protocol*) is defined in **[RFC 792](https://www.rfc-editor.org/rfc/rfc792)** (September 1981, J. Postel, ISI). It is an integral part of IP and **must be implemented by every IP module**.
 
-### 🧩 Rôle d'ICMP
+### 🧩 Role of ICMP
 
-ICMP fournit un **retour d'information** sur les problèmes rencontrés lors du traitement des datagrammes IP :
+ICMP provides **feedback** about problems encountered while processing IP datagrams:
 
-| Type | Nom | Description |
+| Type | Name | Description |
 |:----:|:---|:---|
-| `0` | Echo Reply | Réponse à une requête echo |
-| `3` | Destination Unreachable | Destination inaccessible |
-| `4` | Source Quench | Congestion — ralentir l'émission |
-| `5` | Redirect | Route plus courte disponible |
-| `8` | **Echo** | **Requête echo (utilisée par `ping`)** |
-| `11` | Time Exceeded | TTL expiré en transit |
-| `12` | Parameter Problem | Erreur dans l'en-tête IP |
-| `13` | Timestamp | Demande d'horodatage |
-| `14` | Timestamp Reply | Réponse d'horodatage |
+| `0` | Echo Reply | Reply to an echo request |
+| `3` | Destination Unreachable | Destination unreachable |
+| `4` | Source Quench | Congestion — slow down transmission |
+| `5` | Redirect | A shorter route is available |
+| `8` | **Echo** | **Echo request (used by `ping`)** |
+| `11` | Time Exceeded | TTL expired in transit |
+| `12` | Parameter Problem | Error in the IP header |
+| `13` | Timestamp | Timestamp request |
+| `14` | Timestamp Reply | Timestamp reply |
 
-> ⚠️ Aucun message ICMP n'est envoyé **à propos** d'autres messages ICMP (évite la régression infinie).
+> ⚠️ No ICMP message is sent **about** other ICMP messages (avoids infinite regression).
 
-### 🏓 Format du message Echo / Echo Reply
+### 🏓 Echo / Echo Reply message format
 
-C'est le cœur de `ping`. Structure du paquet ICMP (RFC 792) :
+This is the core of `ping`. ICMP packet structure (RFC 792):
 
 ```
  0                   1                   2                   3
@@ -105,68 +105,68 @@ C'est le cœur de `ping`. Structure du paquet ICMP (RFC 792) :
 +-+-+-+-+-+-+-+-+
 ```
 
-| Champ | Echo Request | Echo Reply |
+| Field | Echo Request | Echo Reply |
 |:---|:---:|:---:|
 | **Type** | `8` | `0` |
 | **Code** | `0` | `0` |
-| **Checksum** | Complément à 1 sur 16 bits | idem |
-| **Identifier** | Identifie la session (comme un port TCP/UDP) | renvoyé tel quel |
-| **Sequence Number** | Incrémenté à chaque requête | renvoyé tel quel |
-| **Data** | Données arbitraires | **doit être renvoyées à l'identique** |
+| **Checksum** | 16-bit one's complement | same |
+| **Identifier** | Identifies the session (like a TCP/UDP port) | returned as-is |
+| **Sequence Number** | Incremented on each request | returned as-is |
+| **Data** | Arbitrary data | **must be returned unchanged** |
 
-### 🔐 Calcul du checksum ICMP
+### 🔐 ICMP checksum computation
 
-Le checksum est le **complément à 1 sur 16 bits** de la somme en complément à 1 de tous les mots de 16 bits du message ICMP, en commençant par le champ **Type**. Le champ checksum est mis à **zéro** pendant le calcul.
+The checksum is the **16-bit one's complement** of the one's complement sum of all 16-bit words of the ICMP message, starting from the **Type** field. The checksum field is set to **zero** while computing.
 
-### 🌍 En-tête IP associé
+### 🌍 Associated IP header
 
-Chaque message ICMP est encapsulé dans un datagramme IP avec notamment :
+Each ICMP message is encapsulated in an IP datagram with, among others:
 
-| Champ IP | Valeur ICMP |
+| IP field | ICMP value |
 |:---|:---|
 | **Version** | `4` |
 | **Protocol** | `1` (ICMP) |
-| **TTL** | Décrémenté à chaque saut — expiré → ICMP Time Exceeded (type 11) |
-| **Header Checksum** | Checksum de l'en-tête IP |
+| **TTL** | Decremented at each hop — expired → ICMP Time Exceeded (type 11) |
+| **Header Checksum** | IP header checksum |
 
 ---
 
-## ⏱️ RTT & statistiques
+## ⏱️ RTT & statistics
 
-### Qu'est-ce que le RTT ?
+### What is RTT?
 
-**RTT** (*Round-Trip Time*) = temps aller-retour d'un paquet ICMP, en millisecondes.
+**RTT** (*Round-Trip Time*) = round-trip time of an ICMP packet, in milliseconds.
 
 ```
-  Envoi Echo Request          Réception Echo Reply
+  Send Echo Request            Receive Echo Reply
         |                              |
         t1                             t2
         |<-------- RTT = t2 - t1 ----->|
 ```
 
-Dans `ft_ping`, le timestamp est enregistré dans le paquet à l'envoi (`gettimeofday`), puis recalculé à la réception via `get_ms()`.
+In `ft_ping`, the timestamp is stored in the packet on send (`gettimeofday`), then recomputed on receive via `get_ms()`.
 
 ---
 
-### Structure `rtt_t`
+### `rtt_t` structure
 
-La structure `rtt_t` (dans `src/core/rtt.c`) accumule les statistiques **sans stocker chaque RTT en mémoire** :
+The `rtt_t` structure (in `src/core/rtt.c`) accumulates statistics **without storing every RTT in memory**:
 
-| Champ | Rôle |
+| Field | Role |
 |:---|:---|
-| `min` | Plus petit RTT observé |
-| `max` | Plus grand RTT observé |
-| `sum` | Somme de tous les RTT → sert à calculer la **moyenne** |
-| `sumsq` | Somme des carrés de tous les RTT → sert à calculer le **mdev** |
-| `count` | Nombre de RTT enregistrés |
-| `elapsed_ms` | Durée totale du ping (ligne `time 1001ms`) |
-| `start` | Horodatage du début du ping |
+| `min` | Smallest observed RTT |
+| `max` | Largest observed RTT |
+| `sum` | Sum of all RTTs → used to compute the **average** |
+| `sumsq` | Sum of squares of all RTTs → used to compute the **mdev** |
+| `count` | Number of recorded RTTs |
+| `elapsed_ms` | Total ping duration (`time 1001ms` line) |
+| `start` | Timestamp of the start of the ping |
 
 ---
 
-### Formules utilisées
+### Formulas used
 
-#### Moyenne (avg)
+#### Average (avg)
 
 ```
 avg = sum / count
@@ -178,7 +178,7 @@ avg = sum / count
 variance = (sumsq / count) - (avg × avg)
 ```
 
-En développant :
+Expanded:
 
 ```
 variance = (sumsq / count) - (sum / count)²
@@ -186,16 +186,16 @@ variance = (sumsq / count) - (sum / count)²
 
 #### mdev (mean deviation)
 
-Le **mdev** est l'**écart-type** des RTT. Il mesure la **stabilité** du réseau :
+The **mdev** is the **standard deviation** of the RTTs. It measures network **stability**:
 
-- mdev **faible** → temps de réponse réguliers
-- mdev **élevé** → temps de réponse instables (jitter, congestion…)
+- **Low** mdev → stable response times
+- **High** mdev → unstable response times (jitter, congestion…)
 
 ```
 mdev = sqrt(variance)
 ```
 
-#### Ligne affichée à la fin
+#### Line printed at the end
 
 ```
 rtt min/avg/max/mdev = 11.800/12.050/12.300/0.250 ms
@@ -203,11 +203,11 @@ rtt min/avg/max/mdev = 11.800/12.050/12.300/0.250 ms
 
 ---
 
-### Exemple chiffré
+### Numeric example
 
-RTT reçus : `10 ms`, `12 ms`, `14 ms`, `50 ms`
+Received RTTs: `10 ms`, `12 ms`, `14 ms`, `50 ms`
 
-**Étape 1 — Accumulation à chaque paquet**
+**Step 1 — Accumulation on each packet**
 
 ```
 sum   = 10 + 12 + 14 + 50       = 86
@@ -217,7 +217,7 @@ min   = 10
 max   = 50
 ```
 
-**Étape 2 — Calcul final**
+**Step 2 — Final computation**
 
 ```
 avg      = 86 / 4           = 21.5 ms
@@ -225,43 +225,43 @@ variance = 2940/4 - 21.5²   = 735 - 462.25 = 272.75
 mdev     = sqrt(272.75)     ≈ 16.516 ms
 ```
 
-Résultat :
+Result:
 
 ```
 rtt min/avg/max/mdev = 10.000/21.500/50.000/16.516 ms
 ```
 
-Le mdev est élevé car le paquet à `50 ms` perturbe fortement la moyenne.
+The mdev is high because the `50 ms` packet strongly skews the average.
 
 ---
 
-### Pourquoi `sumsq` sans tout stocker en mémoire ?
+### Why `sumsq` without storing everything in memory?
 
-**Approche naïve** : garder un tableau `[10, 12, 14, 50]` puis calculer la moyenne des écarts.
+**Naive approach**: keep an array `[10, 12, 14, 50]` then compute the mean of deviations.
 
-**Approche ping** : à chaque paquet, mettre à jour seulement `sum` et `sumsq`.
+**Ping approach**: on each packet, only update `sum` and `sumsq`.
 
-Les deux méthodes donnent le **même résultat** grâce à cette identité mathématique :
+Both methods give the **same result** thanks to this mathematical identity:
 
 ```
-variance = moyenne des (xi - avg)²
-         = moyenne des (xi²) - avg²
+variance = mean of (xi - avg)²
+         = mean of (xi²) - avg²
          = (sumsq / n) - (sum / n)²
 ```
 
-Donc `sum` + `sumsq` contiennent toute l'information nécessaire pour la moyenne et le mdev, en **mémoire constante O(1)**.
+So `sum` + `sumsq` hold all the information needed for the average and mdev, in **constant O(1) memory**.
 
 ---
 
-### Correspondance avec le code
+### Mapping to the code
 
 ```c
-// À chaque echo reply reçu (rtt_add)
+// On each echo reply received (rtt_add)
 r->sum   += ms;
 r->sumsq += ms * ms;
 r->count++;
 
-// À la fin (rtt_show)
+// At the end (rtt_show)
 avg      = r->sum / r->count;
 variance = (r->sumsq / r->count) - (avg * avg);
 mdev     = sqrt(variance);
@@ -269,88 +269,88 @@ mdev     = sqrt(variance);
 
 ---
 
-### Références RTT
+### RTT references
 
-| Source | Lien |
+| Source | Link |
 |:---|:---|
 | GNU inetutils `ping.c` | [gnu.org/software/inetutils](https://www.gnu.org/software/inetutils/) |
 | iputils `ping_common.c` | [github.com/iputils/iputils](https://github.com/iputils/iputils/blob/master/ping_common.c) |
-| Explication du mdev | [serverfault.com — What does mdev mean in ping](https://serverfault.com/questions/333116/what-does-mdev-mean-in-ping8) |
+| mdev explanation | [serverfault.com — What does mdev mean in ping](https://serverfault.com/questions/333116/what-does-mdev-mean-in-ping8) |
 
 ---
 
-## 🏗️ Exigences du projet
+## 🏗️ Project requirements
 
-### 📌 Règles générales
+### 📌 General rules
 
-| Règle | Détail |
+| Rule | Detail |
 |:---|:---|
-| 🗣️ Langage | **C** uniquement |
-| 📦 Livrable | Un **Makefile** avec les règles habituelles |
-| 🏷️ Binaire | Doit s'appeler **`ft_ping`** |
-| 📚 libc | Toute la **libc** est autorisée |
-| 🚫 Interdit | Appeler `ping` système ou utiliser ses sources |
-| 🛡️ Robustesse | Aucun crash inattendu (segfault, bus error, double free…) |
-| 📏 Référence | Comportement calqué sur **inetutils-2.0** (`ping -V`) |
+| 🗣️ Language | **C** only |
+| 📦 Deliverable | A **Makefile** with the usual rules |
+| 🏷️ Binary | Must be named **`ft_ping`** |
+| 📚 libc | The entire **libc** is allowed |
+| 🚫 Forbidden | Calling the system `ping` or using its sources |
+| 🛡️ Robustness | No unexpected crash (segfault, bus error, double free…) |
+| 📏 Reference | Behavior modeled on **inetutils-2.0** (`ping -V`) |
 
-### ✅ Partie obligatoire
+### ✅ Mandatory part
 
-- [ ] Exécutable nommé `ft_ping`
-- [ ] Gestion des options **`-v`** et **`-?`**
-- [ ] Prise en charge d'une adresse **IPv4** ou d'un **hostname** en argument
-- [ ] Gestion des **FQDN** sans résolution DNS dans le paquet retourné
-- [ ] Option **`-v`** : afficher les résultats en cas de problème ou d'erreur liée aux paquets (sans forcer l'arrêt du programme — modifier le TTL peut aider à provoquer une erreur)
-- [ ] Famille **`printf`** autorisée
+- [ ] Executable named `ft_ping`
+- [ ] Handling of options **`-v`** and **`-?`**
+- [ ] Support for an **IPv4** address or a **hostname** as argument
+- [ ] Handling of **FQDNs** without DNS resolution on the returned packet
+- [ ] Option **`-v`**: display results when a packet-related problem or error occurs (without forcing the program to stop — changing the TTL can help trigger an error)
+- [ ] The **`printf`** family is allowed
 
 ---
 
 ## ⚙️ Options
 
-### 🔴 Obligatoires
+### 🔴 Mandatory
 
 | Option | Description |
 |:---:|:---|
-| `-v` | Mode verbeux — affiche les détails en cas d'erreur ou de problème de paquet |
-| `-?` | Affiche l'aide |
+| `-v` | Verbose mode — shows details on packet errors or problems |
+| `-?` | Shows help |
 
-### 🟡 Bonus (si la partie obligatoire est parfaite)
+### 🟡 Bonus (if the mandatory part is perfect)
 
 | Option | Description |
 |:---:|:---|
 | `-f` | Flood ping |
-| `-l` | Précharge (preload) |
-| `-n` | Pas de résolution DNS |
-| `-w` | Délai d'attente (deadline) |
-| `-W` | Timeout par réponse |
-| `-p` | Pattern à envoyer dans les paquets |
-| `-r` | Enregistrement de route |
-| `-s` | Taille du paquet |
-| `-T` | Options IP (TOS) |
-| `--ttl` | Définir le TTL |
-| `--ip-timestamp` | Option timestamp IP |
+| `-l` | Preload |
+| `-n` | No DNS resolution |
+| `-w` | Wait deadline |
+| `-W` | Timeout per reply |
+| `-p` | Pattern to send in packets |
+| `-r` | Record route |
+| `-s` | Packet size |
+| `-T` | IP options (TOS) |
+| `--ttl` | Set the TTL |
+| `--ip-timestamp` | IP timestamp option |
 
-> ℹ️ Les options `-V`, `--usage` et `--echo` **ne comptent pas** comme bonus.  
-> Deux flags pour la même fonctionnalité (ex. `-t` / `--type`) ne comptent qu'**une seule fois**.
+> ℹ️ Options `-V`, `--usage` and `--echo` **do not count** as bonus.  
+> Two flags for the same feature (e.g. `-t` / `--type`) count only **once**.
 
 ---
 
-## 🚀 Utilisation
+## 🚀 Usage
 
 ```bash
-# Ping basique vers une adresse IPv4
+# Basic ping to an IPv4 address
 ./ft_ping 8.8.8.8
 
-# Ping vers un hostname
+# Ping to a hostname
 ./ft_ping google.com
 
-# Mode verbeux (affiche aussi les erreurs ICMP)
+# Verbose mode (also shows ICMP errors)
 ./ft_ping -v 127.0.0.1
 
-# Aide
+# Help
 ./ft_ping -?
 ```
 
-### 📤 Exemple de sortie attendue (inetutils-2.0)
+### 📤 Expected output example (inetutils-2.0)
 
 ```
 PING google.com (142.250.185.78) 56(84) bytes of data.
@@ -368,44 +368,44 @@ rtt min/avg/max/mdev = 11.800/12.050/12.300/0.250 ms
 
 ```bash
 make        # Compile ft_ping
-make clean  # Nettoie les fichiers objets
-make fclean # Nettoie tout
-make re     # Recompile entièrement
+make clean  # Clean object files
+make fclean # Clean everything
+make re     # Full rebuild
 ```
 
-### 🖥️ Environnement requis
+### 🖥️ Required environment
 
-- 🐧 Machine virtuelle **Debian ≥ 7.0**
-- 🐧 Noyau Linux **> 3.14**
-- 🛠️ Outils de compilation C (`gcc`, `make`, …)
+- 🐧 Virtual machine **Debian ≥ 7.0**
+- 🐧 Linux kernel **> 3.14**
+- 🛠️ C build tools (`gcc`, `make`, …)
 
 ---
 
-## 📋 Critères d'évaluation
+## 📋 Evaluation criteria
 
-| Critère | Tolérance |
+| Criterion | Tolerance |
 |:---|:---|
-| 📝 Indentation de la sortie | **Identique** à inetutils-2.0 (sauf ligne RTT et résolution DNS inverse) |
-| ⏱️ Réception des paquets | Délai de **± 30 ms** accepté |
-| 🧪 Partie bonus | Évaluée **uniquement** si la partie obligatoire est **parfaite** |
-| 📂 Dépôt Git | Seul le contenu du dépôt est évalué lors de la soutenance |
+| 📝 Output indentation | **Identical** to inetutils-2.0 (except RTT line and reverse DNS resolution) |
+| ⏱️ Packet reception | Delay of **± 30 ms** accepted |
+| 🧪 Bonus part | Evaluated **only** if the mandatory part is **perfect** |
+| 📂 Git repository | Only the repository content is evaluated during the defense |
 
 ---
 
-## 🎁 Partie bonus
+## 🎁 Bonus part
 
-La partie bonus n'est évaluée que si **toute** la partie obligatoire fonctionne **sans aucun dysfonctionnement**. En cas de moindre défaut sur le mandatory, le bonus n'est **pas du tout** pris en compte.
+The bonus part is evaluated only if **the entire** mandatory part works **without any malfunction**. If there is any defect on the mandatory part, the bonus is **not taken into account at all**.
 
 ---
 
-## 📚 Références
+## 📚 References
 
-| Document | Lien |
+| Document | Link |
 |:---|:---|
 | 📄 RFC 792 — ICMP | [rfc-editor.org/rfc/rfc792](https://www.rfc-editor.org/rfc/rfc792) |
 | 📄 RFC 791 — IP | [rfc-editor.org/rfc/rfc791](https://www.rfc-editor.org/rfc/rfc791) |
-| 🔧 inetutils-2.0 (référence ping) | [gnu.org/software/inetutils](https://www.gnu.org/software/inetutils/) |
-| 📋 Sujet 42 ft_ping | `subjects/en.subject.pdf` |
+| 🔧 inetutils-2.0 (ping reference) | [gnu.org/software/inetutils](https://www.gnu.org/software/inetutils/) |
+| 📋 42 ft_ping subject | `subjects/en.subject.pdf` |
 
 ---
 
@@ -413,6 +413,6 @@ La partie bonus n'est évaluée que si **toute** la partie obligatoire fonctionn
 
 ### 🏓 *« Are you there? »* — *« Yes, in 12.3 ms. »*
 
-*Projet réalisé dans le cadre du cursus **42***
+*Project completed as part of the **42** curriculum*
 
 </div>
