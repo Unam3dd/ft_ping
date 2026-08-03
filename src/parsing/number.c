@@ -30,7 +30,7 @@
 
 uint64_t parse_unumber(const char *str)
 {
-	if (!str) {
+	if (!str || !*str) {
 		errno = EINVAL;
 		return (0);
 	}

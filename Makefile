@@ -39,8 +39,26 @@ SRCS = $(PARSING) \
 	   $(CORE)    \
 	   src/main.c
 
+LIB_SRCS = $(PARSING) \
+	   $(NETWORK) \
+	   $(UTILS)   \
+	   $(CORE)
+
 OBJDIR = objs
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.c=.o))
+LIB_OBJS = $(addprefix $(OBJDIR)/, $(LIB_SRCS:.c=.o))
+
+TEST_INC = -I$(INCLUDE_DIR) -Itest/inc
+TEST_UNIT_SRCS = test/unit/test_unit_main.c \
+	test/unit/test_helpers.c \
+	test/unit/test_checksum.c \
+	test/unit/test_number.c \
+	test/unit/test_rtt.c \
+	test/unit/test_big16.c \
+	test/unit/test_options.c \
+	test/unit/test_resolve.c
+TEST_UNIT_BIN = $(DIST)test_unit
+TEST_CMP_BIN = $(DIST)test_cmp
 
 all: $(DIST)$(NAME)
 
@@ -56,6 +74,21 @@ $(OBJDIR):
 $(OBJDIR)/%.o: %.c 
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(TEST_UNIT_BIN): $(DIST) $(LIB_OBJS) $(TEST_UNIT_SRCS)
+	$(CC) $(CFLAGS) $(TEST_INC) $(TEST_UNIT_SRCS) $(LIB_OBJS) -o $@ -lm
+
+$(TEST_CMP_BIN): $(DIST) test/cmp/test_cmp_ping.c $(DIST)$(NAME)
+	$(CC) $(CFLAGS) -DFT_PING_BIN=\"$(CURDIR)/$(DIST)$(NAME)\" \
+		test/cmp/test_cmp_ping.c -o $@
+
+test: $(TEST_UNIT_BIN)
+	./$(TEST_UNIT_BIN)
+
+test_cmp: $(TEST_CMP_BIN) $(DIST)$(NAME)
+	./$(TEST_CMP_BIN)
+
+test_all: test test_cmp
+
 clean:
 	rm -rf $(OBJDIR)
 
@@ -64,4 +97,4 @@ fclean: clean
 
 re: fclean $(DIST)$(NAME)
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re test test_cmp test_all
