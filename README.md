@@ -27,6 +27,7 @@
 - [🔧 Compilation](#-compilation)
 - [📋 Evaluation criteria](#-evaluation-criteria)
 - [🎁 Bonus part](#-bonus-part)
+- [🧩 Challenges & resolutions](#-challenges--resolutions)
 - [📚 References](#-references)
 
 ---
@@ -395,6 +396,93 @@ make re     # Full rebuild
 ## 🎁 Bonus part
 
 The bonus part is evaluated only if **the entire** mandatory part works **without any malfunction**. If there is any defect on the mandatory part, the bonus is **not taken into account at all**.
+
+---
+
+## 🧩 Challenges & resolutions
+
+This section summarizes the main difficulties encountered while implementing `ft_ping`, and how they were solved.
+
+### 1. Raw sockets & privileges
+
+**Challenge:** ICMP Echo requires a raw socket (`SOCK_RAW` / `IPPROTO_ICMP`). Creating it fails without sufficient privileges (`Operation not permitted`).
+
+**Resolution:**
+- Use `socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)`
+- Run with `sudo`, or grant the binary `CAP_NET_RAW`
+- Fail cleanly with a clear error when the socket cannot be created
+
+### 2. Matching inetutils-2.0 output
+
+**Challenge:** The subject requires output indentation identical to **inetutils-2.0**, except the RTT line and reverse DNS. Small differences (`PING` banner, stats line, verbose dumps) are easy to get wrong.
+
+**Resolution:**
+- Align the banner on `PING host (ip) 56(84) bytes of data.`
+- Keep reply lines as `bytes from / icmp_seq / ttl / time`
+- Print final stats with packet loss (and `time` when relevant)
+- Never resolve reverse DNS on addresses taken from received packets (mandatory + `-n`)
+
+### 3. RTT statistics without storing every sample
+
+**Challenge:** Computing `min` / `avg` / `max` / `mdev` without keeping an array of all RTTs in memory.
+
+**Resolution:**
+- Accumulate `sum` and `sumsq` on each reply (`rtt_add`)
+- Derive average and variance at the end:
+  - `avg = sum / count`
+  - `variance = (sumsq / count) - avg²`
+  - `mdev = sqrt(variance)`
+- Constant memory footprint `O(1)`, same approach as classic ping implementations
+
+### 4. ICMP errors & verbose mode (`-v`)
+
+**Challenge:** Besides Echo Reply, the program must handle error packets (Destination Unreachable, Time Exceeded, …), especially with `-v`, without crashing and without stopping the loop.
+
+**Resolution:**
+- Parse the outer IP/ICMP headers, then the embedded original datagram
+- Filter with the Echo identifier (`getpid() & 0xFFFF`) to keep only our packets
+- Print a short human-readable message
+- With `-v`, dump the embedded IP/ICMP headers (inetutils-style)
+- Use a low TTL (`--ttl` / `-t`) to reliably trigger Time Exceeded during tests
+
+### 5. Event loop: send every second + receive + signals
+
+**Challenge:** Send one Echo Request per second, receive replies asynchronously, and stop cleanly on `Ctrl+C` or deadline (`-w`).
+
+**Resolution:**
+- `timerfd` for the 1-second interval
+- `poll()` on the ICMP socket and the timer
+- `SIGINT` / `SIGALRM` handlers to leave the loop and print statistics
+- `-w` implemented with `alarm()` so the program exits after N seconds regardless of replies
+
+### 6. Byte order & packet identity
+
+**Challenge:** ICMP fields (`id`, `sequence`) and multi-byte values must be consistent on the wire; otherwise replies are ignored or sequences look wrong.
+
+**Resolution:**
+- Keep a stable Echo ID derived from the process PID
+- Handle endianness of the sequence with `BIG16`
+- Recompute the ICMP checksum after filling the packet (`checksum`)
+
+### 7. CLI parsing edge cases
+
+**Challenge:** Options such as `-?`, invalid values (`-c abc`, `-t 999`), missing host, and `-V` must not crash or accidentally start a ping with a `NULL` host.
+
+**Resolution:**
+- Centralize parsing with `getopt_long`
+- Validate numeric arguments via `parse_unumber` + range checks (TTL 1–255, deadline > 0)
+- Special-case `-?` / `--help` / `--usage` so help always works (including under zsh, where `?` is a glob: use `'-?'`)
+- Dedicated return codes: help → exit error path, version (`-V`) → exit 0 without starting the ping
+
+### 8. Testing & CI
+
+**Challenge:** Guaranteeing behavior without relying only on manual runs, and catching regressions early.
+
+**Resolution:**
+- Unit tests in C for pure functions (`checksum`, `parse_unumber`, `rtt_*`, `resolve_host`, CLI parsing)
+- Integration tests with `fork` + `pipe` comparing structural output against system `ping`
+- `make test` rebuilds objects after `make clean` when needed
+- GitHub Actions CI pipeline: **build** + **unit tests** on every push / pull request
 
 ---
 
