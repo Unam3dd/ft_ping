@@ -234,6 +234,7 @@ int create_socket(void);
 int set_socket_ttl(fd_t fd, uint32_t ttl);
 int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst);
 int recv_icmp_echo(context_t *ctx);
+int ip_icmp_ok(const char *buf, int size, int offset, int *hlen);
 
 /////////////////////////////////////
 //

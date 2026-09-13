@@ -151,20 +151,29 @@ int	handle_icmp_error(context_t *ctx, const char *buf, int size)
 	icmphdr_t	*err = NULL;
 	iphdr_t		*embed_ip = NULL;
 	icmphdr_t	*embed_icmp = NULL;
+	int		outer_hlen = 0;
+	int		embed_off = 0;
+	int		embed_hlen = 0;
 
 	if (!ctx || !buf || size <= 0)
 		return (1);
+	if (!ip_icmp_ok(buf, size, 0, &outer_hlen))
+		return (1);
 
 	outer = (iphdr_t *)buf;
-	err = (icmphdr_t *)(buf + (outer->ihl * 4));
-	embed_ip = (iphdr_t *)((char *)err + sizeof(icmphdr_t));
-	embed_icmp = (icmphdr_t *)((char *)embed_ip + (embed_ip->ihl * 4));
+	err = (icmphdr_t *)(buf + outer_hlen);
+	embed_off = outer_hlen + (int)sizeof(icmphdr_t);
+	if (!ip_icmp_ok(buf, size, embed_off, &embed_hlen))
+		return (1);
+
+	embed_ip = (iphdr_t *)(buf + embed_off);
+	embed_icmp = (icmphdr_t *)(buf + embed_off + embed_hlen);
 
 	if (!our_echo(embed_icmp) || !should_show(ctx, embed_ip))
 		return (1);
-	
-	print_error(outer, size - (outer->ihl * 4), err->type, err->code);
+
+	print_error(outer, size - outer_hlen, err->type, err->code);
 	verbose_dump(embed_ip, embed_icmp);
-	
+
 	return (1);
 }

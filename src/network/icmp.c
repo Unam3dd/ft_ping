@@ -21,6 +21,42 @@
 
 /////////////////////////////////////
 //
+//			BOUNDS
+//
+////////////////////////////////////
+
+int ip_icmp_ok(const char *buf, int size, int offset, int *hlen)
+{
+	const iphdr_t	*ip = NULL;
+	int		h = 0;
+	int		left = 0;
+
+	if (!buf || size < 0 || offset < 0 || offset > size)
+		return (0);
+
+	left = size - offset;
+
+	if (left < (int)sizeof(iphdr_t))
+		return (0);
+
+	ip = (const iphdr_t *)(buf + offset);
+
+	h = (int)ip->ihl * 4;
+
+	if (ip->ihl < 5 || h < (int)sizeof(iphdr_t) || h > left)
+		return (0);
+
+	if (left - h < (int)sizeof(icmphdr_t))
+		return (0);
+
+	if (hlen)
+		*hlen = h;
+
+	return (1);
+}
+
+/////////////////////////////////////
+//
 //			STATIC
 //
 ////////////////////////////////////
@@ -49,21 +85,32 @@ static int show_reply(iphdr_t *ip, icmp_pkt_t *pkt, rtt_t *rtt, int icmplen)
 
 static int show_response(context_t *ctx, const char *buf, int size)
 {
-	iphdr_t		*ip;
-	icmphdr_t	*icmp;
-	int		hlen;
-	int		icmplen;
+	iphdr_t		*ip = NULL;
+	icmphdr_t	*icmp = NULL;
+	int		hlen = 0;
+	int		icmplen = 0;
 
 	if (!ctx || !buf || size <= 0)
 		return (-1);
+
+	if (!ip_icmp_ok(buf, size, 0, &hlen))
+		return (1);
+
 	ip = (iphdr_t *)buf;
-	hlen = ip->ihl * 4;
 	icmp = (icmphdr_t *)(buf + hlen);
 	icmplen = size - hlen;
-	if (icmp->type == ICMP_ECHOREPLY)
+
+	if (icmp->type == ICMP_ECHOREPLY) {
+		
+		if (icmplen < (int)(sizeof(icmphdr_t) + sizeof(struct timeval)))
+			return (1);
+		
 		return (show_reply(ip, (icmp_pkt_t *)icmp, &ctx->rtt, icmplen));
+	}
+
 	if (icmp->type == ICMP_DEST_UNREACH || icmp->type == ICMP_TIME_EXCEEDED)
 		return (handle_icmp_error(ctx, buf, size));
+	
 	return (1);
 }
 
@@ -77,29 +124,36 @@ int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst)
 {
 	static uint64_t	seq = BIG16(0x0);
 	icmp_pkt_t		pkt;
-	int			bytes;
+	int			bytes = 0;
 
 	if (fd < 0 || !dst || !ctx)
 		return (-1);
+	
 	memset(&pkt, 0, sizeof(icmp_pkt_t));
+	
 	pkt.h.un.echo.id = getpid() & 0xFFFF;
 	pkt.h.un.echo.sequence = seq;
 	pkt.h.code = 0;
 	pkt.h.type = ICMP_ECHO;
+	
 	memcpy(pkt.data, "\x00\x01\x02\x03\x04\x05\x06"
 		"\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
 		"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19"
 		"\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'", sizeof(pkt.data));
+
 	if (gettimeofday(&pkt.t, NULL) < 0)
 		return (-1);
 	pkt.h.checksum = checksum(&pkt, sizeof(icmp_pkt_t));
 	bytes = sendto(fd, &pkt, sizeof(icmp_pkt_t), 0,
 			(struct sockaddr *)dst, sizeof(sin_t));
+	
 	if (bytes < 0)
 		return (-1);
+	
 	seq = BIG16(seq);
 	seq++;
 	seq = BIG16(seq);
+
 	return (bytes);
 }
 
