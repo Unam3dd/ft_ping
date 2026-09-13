@@ -22,20 +22,28 @@
 void show_stats(const icmp_stat_t *s, const rtt_t *r)
 {
 	const opt_t	*o;
-	float		percentage;
+	const char	*host;
+	int		loss;
 
 	if (!s || !r)
 		return;
 
 	o = get_options(NULL);
-	percentage = 0;
-
+	host = o[OPT_HOST_INDEX].str;
+	if (!host)
+		host = "?";
+	loss = 0;
 	if (s->transmitted)
-		percentage = (float)(100 - (((float)s->received
-						/ (float)s->transmitted) * 100));
+		loss = (int)(((s->transmitted - s->received) * 100)
+			/ s->transmitted);
 
-	printf("--- %s ping statistics ---\n", o[OPT_HOST_INDEX].str);
-	printf("%ld packets transmitted, %ld received, %d%% packet loss\n",
-		s->transmitted, s->received, (uint32_t)(percentage + 0.5f));
+	printf("--- %s ping statistics ---\n", host);
+	printf("%lu packets transmitted, %lu packets received, ",
+		(unsigned long)s->transmitted, (unsigned long)s->received);
+	if (s->received > s->transmitted)
+		printf("-- somebody is printing forged packets!");
+	else if (s->transmitted)
+		printf("%d%% packet loss", loss);
+	printf("\n");
 	rtt_show(r);
 }

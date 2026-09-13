@@ -28,11 +28,10 @@ static int start_program(sin_t *sin, const char *host)
 	if (!sin || !host)
 		return (1);
 
-	char			buf[0x40];
+	char			buf[INET_ADDRSTRLEN];
 	opt_t			*o = get_options(NULL);
-	pid_t			pid = getpid() & 0xFFFF;
+	uint16_t		ident = (uint16_t)(getpid() & 0xFFFF);
 	size_t			data_size = sizeof(icmp_pkt_t) - sizeof(icmphdr_t);
-	size_t			total_size = data_size + sizeof(icmphdr_t) + sizeof(iphdr_t);
 
 	memset(buf, 0, sizeof(buf));
 
@@ -41,12 +40,10 @@ static int start_program(sin_t *sin, const char *host)
 		return (1);
 	}
 
+	printf("PING %s (%s): %zu data bytes", host, buf, data_size);
 	if (o[OPT_VERBOSE_INDEX].bool)
-		printf("PING %s (%s) %zu(%zu) bytes of data, id = %d\n",
-			host, buf, data_size, total_size, pid);
-	else
-		printf("PING %s (%s) %zu(%zu) bytes of data.\n",
-			host, buf, data_size, total_size);
+		printf(", id 0x%04x = %u", ident, ident);
+	printf("\n");
 
 	return (0);
 }

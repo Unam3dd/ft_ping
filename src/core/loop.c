@@ -41,6 +41,8 @@ static volatile bool_t run = TRUE;
 
 static void sig_handler(int sig)
 {
+	if (sig == SIGINT)
+		write(STDOUT_FILENO, "\n", 1);
 	if (sig == SIGINT || sig == SIGALRM)
 		run = FALSE;
 }

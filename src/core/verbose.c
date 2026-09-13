@@ -97,7 +97,7 @@ static void	print_error(iphdr_t *outer, int icmplen, uint8_t type, uint8_t code)
 	}
 	else if (type == ICMP_TIME_EXCEEDED)
 	{
-		snprintf(buf, sizeof(buf), "Time exceeded, Bad Code: %d", code);
+		snprintf(buf, sizeof(buf), "Time exceeded, Unknown Code: %d", code);
 		print_from(outer, icmplen, buf);
 	}
 }
@@ -108,33 +108,41 @@ void	verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp)
 	size_t	hlen = 0;
 	uint16_t	off = 0;
 	int		size = 0;
+	char	src[INET_ADDRSTRLEN];
+	char	dst[INET_ADDRSTRLEN];
 
 	if (!is_verbose() || !embed_ip || !embed_icmp)
 		return ;
 
-	hlen = embed_ip->ihl * 4;
+	hlen = sizeof(*embed_ip);
 	printf("IP Hdr Dump:\n ");
-	
 	for (i = 0; i < hlen; i++)
-		printf("%02x%s", ((unsigned char *)embed_ip)[i], (i % 2) ? " " : "");
+		printf("%02x%s", ((unsigned char *)embed_ip)[i],
+			(i % 2) ? " " : "");
 	printf("\n");
 
 	off = ntohs(embed_ip->frag_off);
+	memset(src, 0, sizeof(src));
+	memset(dst, 0, sizeof(dst));
+	inet_ntop(AF_INET, &embed_ip->saddr, src, sizeof(src));
+	inet_ntop(AF_INET, &embed_ip->daddr, dst, sizeof(dst));
 
 	printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src\tDst\tData\n");
-	printf(" %1x  %1x %02x %04x %04x   %1x %04x  %02x  %02x %04x %s  %s\n",
+	printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x %s  %s\n",
 		embed_ip->version, embed_ip->ihl, embed_ip->tos,
 		ntohs(embed_ip->tot_len), ntohs(embed_ip->id),
 		(off & 0xe000) >> 13, off & 0x1fff,
 		embed_ip->ttl, embed_ip->protocol, ntohs(embed_ip->check),
-		inet_ntoa(*(struct in_addr *)&embed_ip->saddr),
-		inet_ntoa(*(struct in_addr *)&embed_ip->daddr));
-	
-	size = ntohs(embed_ip->tot_len) - hlen;
-	
-	printf("ICMP: type %u, code %u, size %d, id %#04x, seq %#04x\n",
-		embed_icmp->type, embed_icmp->code, size,
-		ntohs(embed_icmp->un.echo.id), ntohs(embed_icmp->un.echo.sequence));
+		src, dst);
+
+	size = ntohs(embed_ip->tot_len) - (embed_ip->ihl * 4);
+	printf("ICMP: type %u, code %u, size %u",
+		embed_icmp->type, embed_icmp->code, size);
+	if (embed_icmp->type == ICMP_ECHO || embed_icmp->type == ICMP_ECHOREPLY)
+		printf(", id 0x%04x, seq 0x%04x",
+			ntohs(embed_icmp->un.echo.id),
+			ntohs(embed_icmp->un.echo.sequence));
+	printf("\n");
 }
 
 int	handle_icmp_error(context_t *ctx, const char *buf, int size)

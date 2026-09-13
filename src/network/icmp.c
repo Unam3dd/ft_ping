@@ -25,20 +25,23 @@
 //
 ////////////////////////////////////
 
-static int show_reply(iphdr_t *ip, icmp_pkt_t *pkt, rtt_t *rtt)
+static int show_reply(iphdr_t *ip, icmp_pkt_t *pkt, rtt_t *rtt, int icmplen)
 {
 	double	ms;
+	char	src[INET_ADDRSTRLEN];
 
-	if (!ip || !pkt || !rtt)
+	if (!ip || !pkt || !rtt || icmplen <= 0)
 		return (-1);
 	if (pkt->h.un.echo.id != (getpid() & 0xFFFF))
 		return (1);
 	ms = get_ms(&pkt->t);
 	rtt_add(rtt, ms);
-	printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-		sizeof(icmp_pkt_t),
-		inet_ntoa(*(struct in_addr *)&ip->saddr),
-		BIG16(pkt->h.un.echo.sequence),
+	memset(src, 0, sizeof(src));
+	inet_ntop(AF_INET, &ip->saddr, src, sizeof(src));
+	printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.3f ms\n",
+		icmplen,
+		src,
+		(unsigned)BIG16(pkt->h.un.echo.sequence),
 		ip->ttl,
 		ms);
 	return (0);
@@ -48,13 +51,17 @@ static int show_response(context_t *ctx, const char *buf, int size)
 {
 	iphdr_t		*ip;
 	icmphdr_t	*icmp;
+	int		hlen;
+	int		icmplen;
 
 	if (!ctx || !buf || size <= 0)
 		return (-1);
 	ip = (iphdr_t *)buf;
-	icmp = (icmphdr_t *)(buf + (ip->ihl * 4));
+	hlen = ip->ihl * 4;
+	icmp = (icmphdr_t *)(buf + hlen);
+	icmplen = size - hlen;
 	if (icmp->type == ICMP_ECHOREPLY)
-		return (show_reply(ip, (icmp_pkt_t *)icmp, &ctx->rtt));
+		return (show_reply(ip, (icmp_pkt_t *)icmp, &ctx->rtt, icmplen));
 	if (icmp->type == ICMP_DEST_UNREACH || icmp->type == ICMP_TIME_EXCEEDED)
 		return (handle_icmp_error(ctx, buf, size));
 	return (1);
