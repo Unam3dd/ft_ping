@@ -20,13 +20,13 @@ jobs:
         run: make
 
       - name: Check binary
-        run: test -x dist/ft_ping && ./dist/ft_ping -V
+        run: test -x ft_ping && ./ft_ping -V
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: ft_ping-bin
-          path: dist/ft_ping
+          path: ft_ping
           retention-days: 3
 
   test:

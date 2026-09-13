@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #ifndef FT_PING_BIN
-# define FT_PING_BIN "./dist/ft_ping"
+# define FT_PING_BIN "./ft_ping"
 #endif
 
 #ifndef SYS_PING_BIN

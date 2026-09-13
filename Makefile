@@ -60,13 +60,13 @@ TEST_UNIT_SRCS = test/unit/test_unit_main.c \
 TEST_UNIT_BIN = $(DIST)test_unit
 TEST_CMP_BIN = $(DIST)test_cmp
 
-all: $(DIST)$(NAME)
+all: $(NAME)
 
 $(DIST):
 	mkdir -p $(DIST)
 
-$(DIST)$(NAME): $(DIST) $(OBJDIR) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(DIST)$(NAME) -lm
+$(NAME): $(OBJDIR) $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME) -lm
 
 $(OBJDIR):
 	mkdir -p $(sort $(addprefix $(OBJDIR)/, $(dir $(SRCS))))
@@ -78,8 +78,8 @@ $(OBJDIR)/%.o: %.c
 $(TEST_UNIT_BIN): $(DIST) $(OBJDIR) $(LIB_OBJS) $(TEST_UNIT_SRCS)
 	$(CC) $(CFLAGS) $(TEST_INC) $(TEST_UNIT_SRCS) $(LIB_OBJS) -o $@ -lm
 
-$(TEST_CMP_BIN): $(DIST) $(DIST)$(NAME) test/cmp/test_cmp_ping.c
-	$(CC) $(CFLAGS) -DFT_PING_BIN=\"$(CURDIR)/$(DIST)$(NAME)\" \
+$(TEST_CMP_BIN): $(DIST) $(NAME) test/cmp/test_cmp_ping.c
+	$(CC) $(CFLAGS) -DFT_PING_BIN=\"$(CURDIR)/$(NAME)\" \
 		test/cmp/test_cmp_ping.c -o $@
 
 test: $(TEST_UNIT_BIN)
@@ -94,8 +94,8 @@ clean:
 	rm -rf $(OBJDIR)
 
 fclean: clean
-	rm -rf $(DIST)
+	rm -rf $(DIST) $(NAME)
 
-re: fclean $(DIST)$(NAME)
+re: fclean $(NAME)
 
 .PHONY: all clean fclean re test test_cmp test_all

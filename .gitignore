@@ -28,6 +28,10 @@
 *.so.*
 *.dylib
 
+# Project binary
+/ft_ping
+dist/
+
 # Executables
 *.exe
 *.out
