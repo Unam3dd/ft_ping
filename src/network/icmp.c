@@ -160,15 +160,17 @@ int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst)
 int recv_icmp_echo(context_t *ctx)
 {
 	char		buf[0x100];
-	socklen_t	len;
-	int		bytes;
+	int		bytes = 0;
 
 	if (!ctx || ctx->fd < 0)
 		return (-1);
-	len = 0;
+	
 	memset(buf, 0, sizeof(buf));
-	bytes = recvfrom(ctx->fd, buf, sizeof(buf), 0, NULL, &len);
+
+	bytes = recvfrom(ctx->fd, buf, sizeof(buf), 0, NULL, NULL);
+	
 	if (bytes < 0)
 		return (-1);
+
 	return (show_response(ctx, buf, bytes));
 }
