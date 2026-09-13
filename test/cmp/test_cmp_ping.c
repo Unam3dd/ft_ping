@@ -28,6 +28,9 @@
 # define SYS_PING_BIN "/bin/ping"
 #endif
 
+static char	g_ft_ping[4096];
+static char	g_sys_ping[4096];
+
 # define C_RESET   "\033[0m"
 # define C_BOLD    "\033[1m"
 # define C_DIM     "\033[2m"
@@ -215,12 +218,26 @@ static char	*normalize_ping_output(const char *in)
 			continue ;
 		}
 
-		if (!strncmp(in + i, "rtt min/", 8))
+		if (!strncmp(in + i, "rtt min/", 8)
+			|| !strncmp(in + i, "round-trip min/", 15))
 		{
 			while (in[i] && in[i] != '\n')
 				i++;
 			if (in[i] == '\n')
 				i++;
+			continue ;
+		}
+
+		if (!strncmp(in + i, "icmp_seq=", 9))
+		{
+			const char	*p;
+
+			memcpy(dst, "icmp_seq=SEQ", 12);
+			dst += 12;
+			p = in + i + 9;
+			while (*p && isdigit((unsigned char)*p))
+				p++;
+			i = (size_t)(p - in);
 			continue ;
 		}
 
@@ -287,6 +304,25 @@ static int	has_line_prefix(const char *s, const char *prefix)
 	return (0);
 }
 
+static int	looks_like_inetutils(const char *s)
+{
+	if (!s)
+		return (0);
+	return (strstr(s, "data bytes") != NULL
+		&& strstr(s, "packets received") != NULL);
+}
+
+static void	init_bins(void)
+{
+	const char	*ft = getenv("FT_PING_BIN");
+	const char	*sys = getenv("SYS_PING_BIN");
+
+	snprintf(g_ft_ping, sizeof(g_ft_ping), "%s",
+		(ft && *ft) ? ft : FT_PING_BIN);
+	snprintf(g_sys_ping, sizeof(g_sys_ping), "%s",
+		(sys && *sys) ? sys : SYS_PING_BIN);
+}
+
 /////////////////////////////////////
 //
 //			TESTS
@@ -296,8 +332,8 @@ static int	has_line_prefix(const char *s, const char *prefix)
 static void	test_help_version(void)
 {
 	t_capture	cap;
-	char		*av_help[] = {FT_PING_BIN, "--help", NULL};
-	char		*av_ver[] = {FT_PING_BIN, "-V", NULL};
+	char		*av_help[] = {g_ft_ping, "--help", NULL};
+	char		*av_ver[] = {g_ft_ping, "-V", NULL};
 
 	memset(&cap, 0, sizeof(t_capture));
 
@@ -318,9 +354,9 @@ static void	test_help_version(void)
 static void	test_parse_cli(void)
 {
 	t_capture	cap;
-	char		*av_nohost[] = {FT_PING_BIN, NULL};
-	char		*av_bad[] = {FT_PING_BIN, "-c", "xyz", "127.0.0.1", NULL};
-	char		*av_ttl[] = {FT_PING_BIN, "-t", "999", "127.0.0.1", NULL};
+	char		*av_nohost[] = {g_ft_ping, NULL};
+	char		*av_bad[] = {g_ft_ping, "-c", "xyz", "127.0.0.1", NULL};
+	char		*av_ttl[] = {g_ft_ping, "-t", "999", "127.0.0.1", NULL};
 
 	memset(&cap, 0, sizeof(t_capture));
 
@@ -347,8 +383,8 @@ static void	compare_localhost(void)
 	t_capture	sys;
 	char		*norm_ours = NULL;
 	char		*norm_sys = NULL;
-	char		*av_ft[] = {FT_PING_BIN, "-c", "2", "-n", "127.0.0.1", NULL};
-	char		*av_sys[] = {SYS_PING_BIN, "-c", "2", "-n", "127.0.0.1", NULL};
+	char		*av_ft[] = {g_ft_ping, "-c", "2", "-n", "127.0.0.1", NULL};
+	char		*av_sys[] = {g_sys_ping, "-c", "2", "-n", "127.0.0.1", NULL};
 	int			ours_replies = 0;
 	int			sys_replies = 0;
 
@@ -356,7 +392,8 @@ static void	compare_localhost(void)
 	memset(&sys, 0, sizeof(t_capture));
 
 	printf("\n" C_CYAN C_BOLD
-		"== compare vs system ping (127.0.0.1 -c 2 -n) ==" C_RESET "\n");
+		"== compare vs %s (127.0.0.1 -c 2 -n) ==" C_RESET "\n",
+		g_sys_ping);
 	printf(C_DIM "  (needs CAP_NET_RAW / sudo for raw socket)\n" C_RESET);
 
 	ours = run_capture(av_ft);
@@ -406,6 +443,21 @@ static void	compare_localhost(void)
 	assert_ok(strstr(norm_ours, "time=TIME") != NULL
 		|| ours_replies == 0,
 		"ft_ping reply times normalized");
+	assert_ok(strstr(ours.data, "): 56 data bytes") != NULL,
+		"ft_ping banner uses inetutils format");
+	assert_ok(strstr(ours.data, "packets received") != NULL,
+		"ft_ping stats use 'packets received'");
+
+	if (looks_like_inetutils(sys.data) && looks_like_inetutils(ours.data)) {
+		assert_ok(norm_ours && norm_sys && strcmp(norm_ours, norm_sys) == 0,
+			"normalized stdout matches inetutils ping");
+		if (norm_ours && norm_sys && strcmp(norm_ours, norm_sys)) {
+			printf(C_DIM "--- normalized ft_ping ---\n" C_RESET "%s",
+				norm_ours);
+			printf(C_DIM "--- normalized inetutils ---\n" C_RESET "%s",
+				norm_sys);
+		}
+	}
 
 	printf("\n" C_DIM "--- ft_ping (raw) ---\n" C_RESET "%s", ours.data);
 	printf(C_DIM "--- system ping (raw) ---\n" C_RESET "%s", sys.data);
@@ -419,7 +471,7 @@ static void	compare_localhost(void)
 static void	test_deadline(void)
 {
 	t_capture	cap;
-	char		*av[] = {FT_PING_BIN, "-w", "2", "-n", "127.0.0.1", NULL};
+	char		*av[] = {g_ft_ping, "-w", "2", "-n", "127.0.0.1", NULL};
 
 	memset(&cap, 0, sizeof(t_capture));
 
@@ -442,8 +494,9 @@ int	main(void)
 	printf(C_BOLD C_BLUE
 		"======== ft_ping comparison / integration tests ========"
 		C_RESET "\n");
-	printf("ft_ping: %s\n", FT_PING_BIN);
-	printf("system:  %s\n", SYS_PING_BIN);
+	init_bins();
+	printf("ft_ping: %s\n", g_ft_ping);
+	printf("system:  %s\n", g_sys_ping);
 
 	test_help_version();
 	test_parse_cli();

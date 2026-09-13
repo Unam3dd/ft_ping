@@ -140,13 +140,13 @@ int parse_arguments(int ac, char **av, opt_t *option)
 				return (1);
 
 			default:
-				printf("Try 'ft_ping --help' or 'ft_ping --usage' for more information.\n");
+				fprintf(stderr, "Try 'ft_ping --help' or 'ft_ping --usage' for more information.\n");
 				return (1);
 		}
 	}
 
 	if (optind >= ac) {
-		printf("ft_ping: missing host operand\nTry 'ft_ping --help' or 'ft_ping --usage' for more information.\n");
+		fprintf(stderr, "ft_ping: missing host operand\nTry 'ft_ping --help' or 'ft_ping --usage' for more information.\n");
 		return (1);
 	}
 

@@ -121,34 +121,38 @@ int ping_loop(context_t *ctx)
 
 		for (n = 0; n < nfd; n++) {
 
-			if (!(fds[n].revents & POLLIN))
-				continue ;
+			if (fds[n].revents & POLLIN) {
+				if (fds[n].fd == ctx->tfd) {
 
-			if (fds[n].fd == ctx->tfd) {
+					if (read(ctx->tfd, &expiration, sizeof(expiration)) < 0)
+						perror("read");
 
-				if (read(ctx->tfd, &expiration, sizeof(expiration)) < 0)
-					perror("read");
+					if (opt[OPT_COUNT_INDEX].u64 && ctx->s.transmitted >= opt[OPT_COUNT_INDEX].u64)
+						continue ;
 
-				if (opt[OPT_COUNT_INDEX].u64 && ctx->s.transmitted >= opt[OPT_COUNT_INDEX].u64)
-					continue ;
+					bytes = send_icmp_echo(ctx, ctx->fd, &ctx->sin);
 
-				bytes = send_icmp_echo(ctx, ctx->fd, &ctx->sin);
+					if (bytes < 0) {
+						perror("send_icmp_echo");
+						return (1);
+					}
 
-				if (bytes < 0) {
-					perror("send_icmp_echo");
-					return (1);
+					ctx->s.transmitted++;
 				}
 
-				ctx->s.transmitted++;
+				if (fds[n].fd == ctx->fd) {
+
+					if (!recv_icmp_echo(ctx))
+						ctx->s.received++;
+
+					if (opt[OPT_COUNT_INDEX].u64 && ctx->s.received >= opt[OPT_COUNT_INDEX].u64)
+						return (0);
+				}
 			}
 
-			if (fds[n].fd == ctx->fd) {
-
-				if (!recv_icmp_echo(ctx))
-					ctx->s.received++;
-
-				if (opt[OPT_COUNT_INDEX].u64 && ctx->s.received >= opt[OPT_COUNT_INDEX].u64)
-					return (0);
+			if (fds[n].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+				run = FALSE;
+				break ;
 			}
 
 		}

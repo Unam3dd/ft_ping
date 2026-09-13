@@ -59,6 +59,7 @@ TEST_UNIT_SRCS = test/unit/test_unit_main.c \
 	test/unit/test_resolve.c
 TEST_UNIT_BIN = $(DIST)test_unit
 TEST_CMP_BIN = $(DIST)test_cmp
+SYS_PING_BIN ?= /usr/bin/ping
 
 all: $(NAME)
 
@@ -88,6 +89,9 @@ test: $(TEST_UNIT_BIN)
 test_cmp: $(TEST_CMP_BIN)
 	./$(TEST_CMP_BIN)
 
+test_cmp_inet: $(TEST_CMP_BIN)
+	SYS_PING_BIN="$(SYS_PING_BIN)" ./$(TEST_CMP_BIN)
+
 test_all: test test_cmp
 
 clean:
@@ -98,4 +102,4 @@ fclean: clean
 
 re: fclean $(NAME)
 
-.PHONY: all clean fclean re test test_cmp test_all
+.PHONY: all clean fclean re test test_cmp test_cmp_inet test_all

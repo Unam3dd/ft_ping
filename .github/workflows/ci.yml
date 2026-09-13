@@ -45,3 +45,41 @@ jobs:
 
       - name: Run unit tests
         run: make test
+
+  cmp-inetutils:
+    name: Compare vs inetutils ping
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye
+      options: --user root
+    steps:
+      - name: Point apt at Debian archive (bullseye EOL)
+        run: |
+          printf '%s\n' \
+            'deb http://archive.debian.org/debian bullseye main' \
+            'deb http://archive.debian.org/debian-security bullseye-security main' \
+            > /etc/apt/sources.list
+          rm -f /etc/apt/sources.list.d/*
+          printf 'Acquire::Check-Valid-Until "false";\n' \
+            > /etc/apt/apt.conf.d/99no-check-valid
+
+      - name: Install toolchain and inetutils-ping 2.0
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential git ca-certificates inetutils-ping
+          ping -V
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: make
+
+      - name: Compare stdout with inetutils (root)
+        run: |
+          export SYS_PING_BIN="$(command -v ping)"
+          echo "Comparing against $SYS_PING_BIN as $(id)"
+          make test_cmp
+        env:
+          FT_PING_BIN: ${{ github.workspace }}/ft_ping
