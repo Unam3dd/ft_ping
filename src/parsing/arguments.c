@@ -48,8 +48,6 @@ int parse_arguments(int ac, char **av, opt_t *option)
 	if (!option)
 		return (1);
 
-	/* Subject requires -? for help; also handle it before getopt
-	 * (and in shells where ? is not expanded away). */
 	i = 1;
 	while (i < ac)
 	{

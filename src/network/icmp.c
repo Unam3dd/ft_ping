@@ -143,7 +143,9 @@ int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst)
 
 	if (gettimeofday(&pkt.t, NULL) < 0)
 		return (-1);
+
 	pkt.h.checksum = checksum(&pkt, sizeof(icmp_pkt_t));
+
 	bytes = sendto(fd, &pkt, sizeof(icmp_pkt_t), 0,
 			(struct sockaddr *)dst, sizeof(sin_t));
 	
