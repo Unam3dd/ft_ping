@@ -18,7 +18,7 @@
 int main(int ac, char **av)
 {
 	opt_t *options = get_options(NULL);
-	context_t ctx= {
+	context_t ctx = {
 		.sin.sin_addr.s_addr = 0,
 		.sin.sin_port = 0,
 		.sin.sin_family = 0,

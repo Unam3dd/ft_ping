@@ -94,20 +94,25 @@ static int	on_icmp(context_t *ctx, opt_t *opt)
 
 int ping_loop(context_t *ctx)
 {
-	opt_t		*opt;
-	struct pollfd	fds[0x2];
-	int		s = 0;
-	size_t		n = 0;
-	nfds_t		nfd = 2;
-
 	if (!ctx)
 		return (1);
-	opt = get_options(NULL);
+
+	opt_t *opt = get_options(NULL);
+
 	if (!opt)
 		return (1);
 
-	fds[0] = (struct pollfd){ .fd = ctx->fd, .events = POLLIN };
-	fds[1] = (struct pollfd){ .fd = ctx->tfd, .events = POLLIN };
+	uint64_t expiration = 0;
+	int bytes = 0;
+	int s = 0;
+	size_t n = 0;
+	nfds_t nfd = 2;
+
+	struct pollfd fds[0x2] = {
+		{ .fd = ctx->fd, .events = POLLIN  },
+		{ .fd = ctx->tfd, .events = POLLIN },
+	};
+
 	ctx->s.transmitted = 0;
 	ctx->s.received = 0;
 
@@ -127,11 +132,13 @@ int ping_loop(context_t *ctx)
 			nfd = 1;
 
 		s = poll(fds, nfd, 3500);
+		
 		if (s < 0) {
 			if (errno == EINTR)
 				continue ;
 			break ;
 		}
+
 		if (!s) {
 			if (nfd == 1)
 				break ;
