@@ -34,6 +34,7 @@ void	reset_options(void)
 
 	optind = 1;
 	optarg = NULL;
+	optopt = 0;
 }
 
 int	test_print_summary(void)

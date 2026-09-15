@@ -28,20 +28,24 @@ void	test_options(void)
 	TEST_ASSERT(strcmp(o[OPT_VERBOSE_INDEX].key, "verbose") == 0, "verbose key");
 	TEST_ASSERT(strcmp(o[OPT_TTL_INDEX].key, "ttl") == 0, "ttl key");
 	TEST_ASSERT(strcmp(o[OPT_NUMERIC_INDEX].key, "numeric") == 0, "numeric key");
-	TEST_ASSERT(strcmp(o[OPT_DEADLINE_INDEX].key, "deadline") == 0, "deadline key");
+	TEST_ASSERT(strcmp(o[OPT_TIMEOUT_INDEX].key, "timeout") == 0, "timeout key");
 }
 
 void	test_parse_arguments(void)
 {
 	opt_t	*o = NULL;
-	char	*av_help[] = {"ft_ping", "-h", NULL};
+	char	*av_help[] = {"ft_ping", "--help", NULL};
 	char	*av_qmark[] = {"ft_ping", "-?", NULL};
+	char	*av_usage[] = {"ft_ping", "--usage", NULL};
 	char	*av_ver[] = {"ft_ping", "-V", NULL};
-	char	*av_ok[] = {"ft_ping", "-v", "-n", "-c", "3", "-t", "64",
+	char	*av_ok[] = {"ft_ping", "-v", "-n", "-c", "3", "--ttl", "64",
 		"-w", "5", "127.0.0.1", NULL};
-	char	*av_bad_ttl[] = {"ft_ping", "-t", "999", "127.0.0.1", NULL};
+	char	*av_bad_ttl[] = {"ft_ping", "--ttl", "999", "127.0.0.1", NULL};
 	char	*av_bad_c[] = {"ft_ping", "-c", "abc", "127.0.0.1", NULL};
 	char	*av_nohost[] = {"ft_ping", "-v", NULL};
+	char	*av_badopt[] = {"ft_ping", "-Z", "127.0.0.1", NULL};
+	char	*av_hosts[] = {"ft_ping", "-c", "1", "127.0.0.1", "127.0.0.2",
+		NULL};
 	int		ret;
 
 	TEST_SECTION("parse_arguments");
@@ -50,36 +54,53 @@ void	test_parse_arguments(void)
 
 	reset_options();
 	ret = parse_arguments(2, av_help, o);
-	TEST_ASSERT(ret == 1, "-h returns 1 (usage)");
+	TEST_ASSERT(ret == PARSE_DONE, "--help returns PARSE_DONE (exit 0)");
 
 	reset_options();
 	ret = parse_arguments(2, av_qmark, o);
-	TEST_ASSERT(ret == 1, "-? returns 1 (usage)");
+	TEST_ASSERT(ret == PARSE_DONE, "-? returns PARSE_DONE (exit 0)");
+
+	reset_options();
+	ret = parse_arguments(2, av_usage, o);
+	TEST_ASSERT(ret == PARSE_DONE, "--usage returns PARSE_DONE (exit 0)");
 
 	reset_options();
 	ret = parse_arguments(2, av_ver, o);
-	TEST_ASSERT(ret == 2, "-V returns 2 (version)");
+	TEST_ASSERT(ret == PARSE_DONE, "-V returns PARSE_DONE (exit 0)");
 
 	reset_options();
 	ret = parse_arguments(1, av_nohost, o);
-	TEST_ASSERT(ret == 1, "missing host returns 1");
+	TEST_ASSERT(ret == PARSE_USAGE, "missing host returns PARSE_USAGE (64)");
+
+	reset_options();
+	ret = parse_arguments(3, av_badopt, o);
+	TEST_ASSERT(ret == PARSE_USAGE, "invalid option returns PARSE_USAGE (64)");
 
 	reset_options();
 	ret = parse_arguments(4, av_bad_ttl, o);
-	TEST_ASSERT(ret == 1, "ttl > 255 rejected");
+	TEST_ASSERT(ret == PARSE_ERROR, "ttl > 255 rejected");
 
 	reset_options();
 	ret = parse_arguments(4, av_bad_c, o);
-	TEST_ASSERT(ret == 1, "invalid count rejected");
+	TEST_ASSERT(ret == PARSE_ERROR, "invalid count rejected");
 
 	reset_options();
 	ret = parse_arguments(10, av_ok, o);
-	TEST_ASSERT(ret == 0, "valid args parse OK");
+	TEST_ASSERT(ret == PARSE_OK, "valid args parse OK");
 	TEST_ASSERT(o[OPT_VERBOSE_INDEX].bool == TRUE, "verbose set");
 	TEST_ASSERT(o[OPT_NUMERIC_INDEX].bool == TRUE, "numeric set");
 	TEST_ASSERT(o[OPT_COUNT_INDEX].u64 == 3, "count = 3");
 	TEST_ASSERT(o[OPT_TTL_INDEX].u32 == 64, "ttl = 64");
-	TEST_ASSERT(o[OPT_DEADLINE_INDEX].u64 == 5, "deadline = 5");
+	TEST_ASSERT(o[OPT_TIMEOUT_INDEX].u64 == 5, "timeout = 5");
 	TEST_ASSERT(o[OPT_HOST_INDEX].str
 		&& strcmp(o[OPT_HOST_INDEX].str, "127.0.0.1") == 0, "host set");
+
+	reset_options();
+	ret = parse_arguments(5, av_hosts, o);
+	TEST_ASSERT(ret == PARSE_OK, "multiple hosts parse OK");
+	TEST_ASSERT(get_first_host_index() == 3, "first host index points at 127.0.0.1");
+	TEST_ASSERT(strcmp(av_hosts[get_first_host_index()], "127.0.0.1") == 0,
+		"host list starts at 127.0.0.1");
+	TEST_ASSERT(strcmp(av_hosts[get_first_host_index() + 1], "127.0.0.2") == 0,
+		"second host reachable from the list");
 }

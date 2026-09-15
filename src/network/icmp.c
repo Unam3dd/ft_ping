@@ -21,13 +21,22 @@
 
 /////////////////////////////////////
 //
+//			STATE
+//
+////////////////////////////////////
+
+/* Echo sequence number, in host order; wraps naturally at 65535. */
+static uint16_t	g_seq = 0;
+
+/////////////////////////////////////
+//
 //			BOUNDS
 //
 ////////////////////////////////////
 
 int ip_icmp_ok(const char *buf, int size, int offset, int *hlen)
 {
-	const iphdr_t	*ip = NULL;
+	unsigned int	ihl = 0;
 	int		h = 0;
 	int		left = 0;
 
@@ -39,11 +48,13 @@ int ip_icmp_ok(const char *buf, int size, int offset, int *hlen)
 	if (left < (int)sizeof(iphdr_t))
 		return (0);
 
-	ip = (const iphdr_t *)(buf + offset);
+	/* Read IHL straight from the wire instead of dereferencing a struct,
+	 * so the check never depends on how buf+offset is aligned. */
+	ihl = (unsigned int)((const unsigned char *)buf)[offset] & 0x0f;
 
-	h = (int)ip->ihl * 4;
+	h = (int)ihl * 4;
 
-	if (ip->ihl < 5 || h < (int)sizeof(iphdr_t) || h > left)
+	if (ihl < 5 || h < (int)sizeof(iphdr_t) || h > left)
 		return (0);
 
 	if (left - h < (int)sizeof(icmphdr_t))
@@ -61,23 +72,33 @@ int ip_icmp_ok(const char *buf, int size, int offset, int *hlen)
 //
 ////////////////////////////////////
 
-static int show_reply(iphdr_t *ip, icmp_pkt_t *pkt, rtt_t *rtt, int icmplen)
+static int show_reply(iphdr_t *ip, const char *raw, rtt_t *rtt, int icmplen)
 {
-	double	ms;
-	char	src[INET_ADDRSTRLEN];
+	icmp_pkt_t	pkt;
+	double		ms;
+	char		src[INET_ADDRSTRLEN];
 
-	if (!ip || !pkt || !rtt || icmplen <= 0)
+	if (!ip || !raw || !rtt || icmplen <= 0)
 		return (-1);
-	if (pkt->h.un.echo.id != (getpid() & 0xFFFF))
+
+	/* The ICMP header sits at IP header + 20 bytes, so it is only 4-byte
+	 * aligned while icmp_pkt_t embeds a struct timeval that needs 8.
+	 * Casting the buffer in place is undefined behaviour, so copy first. */
+	memset(&pkt, 0, sizeof(pkt));
+	memcpy(&pkt, raw, (size_t)icmplen < sizeof(pkt)
+		? (size_t)icmplen : sizeof(pkt));
+
+	if (pkt.h.un.echo.id != htons((uint16_t)(getpid() & 0xFFFF)))
 		return (1);
-	ms = get_ms(&pkt->t);
+
+	ms = get_ms(&pkt.t);
 	rtt_add(rtt, ms);
 	memset(src, 0, sizeof(src));
 	inet_ntop(AF_INET, &ip->saddr, src, sizeof(src));
 	printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.3f ms\n",
 		icmplen,
 		src,
-		(unsigned)BIG16(pkt->h.un.echo.sequence),
+		(unsigned)ntohs(pkt.h.un.echo.sequence),
 		ip->ttl,
 		ms);
 	return (0);
@@ -105,7 +126,7 @@ static int show_response(context_t *ctx, const char *buf, int size)
 		if (icmplen < (int)(sizeof(icmphdr_t) + sizeof(struct timeval)))
 			return (1);
 		
-		return (show_reply(ip, (icmp_pkt_t *)icmp, &ctx->rtt, icmplen));
+		return (show_reply(ip, (const char *)icmp, &ctx->rtt, icmplen));
 	}
 
 	if (icmp->type == ICMP_DEST_UNREACH || icmp->type == ICMP_TIME_EXCEEDED)
@@ -120,19 +141,23 @@ static int show_response(context_t *ctx, const char *buf, int size)
 //
 ////////////////////////////////////
 
+void icmp_reset_seq(void)
+{
+	g_seq = 0;
+}
+
 int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst)
 {
-	static uint64_t	seq = BIG16(0x0);
-	icmp_pkt_t		pkt;
-	int			bytes = 0;
+	icmp_pkt_t	pkt;
+	int		bytes = 0;
 
 	if (fd < 0 || !dst || !ctx)
 		return (-1);
 	
 	memset(&pkt, 0, sizeof(icmp_pkt_t));
 	
-	pkt.h.un.echo.id = getpid() & 0xFFFF;
-	pkt.h.un.echo.sequence = seq;
+	pkt.h.un.echo.id = htons((uint16_t)(getpid() & 0xFFFF));
+	pkt.h.un.echo.sequence = htons(g_seq);
 	pkt.h.code = 0;
 	pkt.h.type = ICMP_ECHO;
 	
@@ -152,9 +177,7 @@ int send_icmp_echo(context_t *ctx, const fd_t fd, const sin_t *dst)
 	if (bytes < 0)
 		return (-1);
 	
-	seq = BIG16(seq);
-	seq++;
-	seq = BIG16(seq);
+	g_seq++;
 
 	return (bytes);
 }

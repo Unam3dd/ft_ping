@@ -339,7 +339,7 @@ static void	test_help_version(void)
 
 	printf("\n" C_CYAN C_BOLD "== help / version ==" C_RESET "\n");
 	cap = run_capture(av_help);
-	assert_ok(cap.data && strstr(cap.data, "usage: ft_ping"),
+	assert_ok(cap.data && strstr(cap.data, "Usage: ft_ping"),
 		"ft_ping --help shows usage");
 	free_capture(&cap);
 
@@ -356,7 +356,7 @@ static void	test_parse_cli(void)
 	t_capture	cap;
 	char		*av_nohost[] = {g_ft_ping, NULL};
 	char		*av_bad[] = {g_ft_ping, "-c", "xyz", "127.0.0.1", NULL};
-	char		*av_ttl[] = {g_ft_ping, "-t", "999", "127.0.0.1", NULL};
+	char		*av_ttl[] = {g_ft_ping, "--ttl", "999", "127.0.0.1", NULL};
 
 	memset(&cap, 0, sizeof(t_capture));
 

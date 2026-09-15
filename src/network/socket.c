@@ -16,6 +16,8 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
+#include <string.h>
 
 /////////////////////////////////////
 //
@@ -28,7 +30,10 @@ int create_socket(void)
 	fd_t fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	if (fd < 0) {
-		perror("create_socket");
+		if (errno == EPERM || errno == EACCES)
+			fprintf(stderr, "ft_ping: Lacking privilege for icmp socket.\n");
+		else
+			fprintf(stderr, "ft_ping: socket: %s\n", strerror(errno));
 		return (-1);
 	}
 
@@ -43,7 +48,8 @@ int set_socket_ttl(fd_t fd, uint32_t ttl)
 	int val = (int)ttl;
 
 	if (setsockopt(fd, IPPROTO_IP, IP_TTL, &val, sizeof(val)) < 0) {
-		perror("setsockopt IP_TTL");
+		fprintf(stderr, "ft_ping: setsockopt(IP_TTL): %s\n",
+			strerror(errno));
 		return (-1);
 	}
 	
