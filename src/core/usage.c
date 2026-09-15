@@ -39,6 +39,7 @@ void show_usage(void)
 	puts("      --ttl=N                specify N as time-to-live");
 	puts("  -v, --verbose              verbose output");
 	puts("  -w, --timeout=N            stop after N seconds");
+	puts("  -W, --linger=N             number of seconds to wait for response");
 	puts("");
 	puts("  -?, --help                 give this help list");
 	puts("      --usage                give a short usage message");
@@ -52,7 +53,7 @@ void show_usage(void)
 /* Short synopsis, printed for --usage only. */
 void show_usage_short(void)
 {
-	puts("Usage: ft_ping [-nv?V] [-c NUMBER] [-w N] [--count=NUMBER]");
+	puts("Usage: ft_ping [-nv?V] [-c NUMBER] [-w N] [-W N] [--count=NUMBER]");
 	puts("            [--numeric] [--ttl=N] [--verbose] [--timeout=N]");
-	puts("            [--help] [--usage] [--version] HOST ...");
+	puts("            [--linger=N] [--help] [--usage] [--version] HOST ...");
 }

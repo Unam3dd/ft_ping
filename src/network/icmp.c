@@ -21,11 +21,10 @@
 
 /////////////////////////////////////
 //
-//			STATE
+//			STATIC
 //
 ////////////////////////////////////
 
-/* Echo sequence number, in host order; wraps naturally at 65535. */
 static uint16_t	g_seq = 0;
 
 /////////////////////////////////////
@@ -81,12 +80,8 @@ static int show_reply(iphdr_t *ip, const char *raw, rtt_t *rtt, int icmplen)
 	if (!ip || !raw || !rtt || icmplen <= 0)
 		return (-1);
 
-	/* The ICMP header sits at IP header + 20 bytes, so it is only 4-byte
-	 * aligned while icmp_pkt_t embeds a struct timeval that needs 8.
-	 * Casting the buffer in place is undefined behaviour, so copy first. */
 	memset(&pkt, 0, sizeof(pkt));
-	memcpy(&pkt, raw, (size_t)icmplen < sizeof(pkt)
-		? (size_t)icmplen : sizeof(pkt));
+	memcpy(&pkt, raw, (size_t)icmplen < sizeof(pkt) ? (size_t)icmplen : sizeof(pkt));
 
 	if (pkt.h.un.echo.id != htons((uint16_t)(getpid() & 0xFFFF)))
 		return (1);

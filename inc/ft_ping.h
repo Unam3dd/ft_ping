@@ -6,7 +6,7 @@
 /*   By: stales <stales@student.42angouleme.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/08 21:15:42 by stales            #+#    #+#             */
-/*   Updated: 2026/07/10 07:35:00 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/09/15 22:41:00 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,19 @@
 #ifndef FT_PING_VERSION
 #define FT_PING_VERSION "0.0.1"
 #endif
+
+/////////////////////////////////////
+//
+//			DEFINES
+//
+////////////////////////////////////
+
+/* How long we keep listening once every packet has been sent (inetutils
+ * calls this MAXWAIT). */
+#define MAXWAIT_MS 10000
+
+/* Poll slice while packets are still being emitted. */
+#define TICK_MS 3500
 
 /////////////////////////////////////
 //
@@ -111,6 +124,7 @@ enum e_opt_index_t
 	OPT_TTL_INDEX,
 	OPT_NUMERIC_INDEX,
 	OPT_TIMEOUT_INDEX,
+	OPT_LINGER_INDEX,
 };
 
 /////////////////////////////////////

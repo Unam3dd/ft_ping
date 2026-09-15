@@ -49,6 +49,7 @@ static const struct option	g_long_opts[] = {
 	{ "usage", no_argument, NULL, 'u' },
 	{ "numeric", no_argument, NULL, 'n' },
 	{ "timeout", required_argument, NULL, 'w' },
+	{ "linger", required_argument, NULL, 'W' },
 	{ "ttl", required_argument, NULL, OPT_TTL_LONG },
 	{ 0, 0, 0, 0 }
 };
@@ -58,7 +59,7 @@ static const struct option	g_long_opts[] = {
 static int	is_known_opt(int c)
 {
 	return (c == 'c' || c == 'v' || c == 'V' || c == 'n' || c == 'w'
-		|| c == OPT_TTL_LONG);
+		|| c == 'W' || c == OPT_TTL_LONG);
 }
 
 /* Mirrors the messages argp produces for inetutils' ping. */
@@ -127,10 +128,10 @@ static int	parse_ttl(opt_t *option, const char *arg)
 	return (PARSE_OK);
 }
 
-static int	parse_timeout(opt_t *option, const char *arg)
+static int	parse_seconds(opt_t *option, const char *arg)
 {
 	errno = 0;
-	option[OPT_TIMEOUT_INDEX].u64 = parse_unumber(arg);
+	option->u64 = parse_unumber(arg);
 
 	if (errno) {
 		fprintf(stderr, "ft_ping: invalid value (`%s' near `%s')\n",
@@ -138,15 +139,15 @@ static int	parse_timeout(opt_t *option, const char *arg)
 		return (PARSE_ERROR);
 	}
 
-	if (option[OPT_TIMEOUT_INDEX].u64 < 1) {
+	if (option->u64 < 1) {
 		fprintf(stderr, "ft_ping: option value too small: %lu\n",
-			(unsigned long)option[OPT_TIMEOUT_INDEX].u64);
+			(unsigned long)option->u64);
 		return (PARSE_ERROR);
 	}
 
-	if (option[OPT_TIMEOUT_INDEX].u64 > 2147483647ULL) {
+	if (option->u64 > 2147483647ULL) {
 		fprintf(stderr, "ft_ping: option value too big: %lu\n",
-			(unsigned long)option[OPT_TIMEOUT_INDEX].u64);
+			(unsigned long)option->u64);
 		return (PARSE_ERROR);
 	}
 
@@ -176,7 +177,7 @@ int parse_arguments(int ac, char **av, opt_t *option)
 	opterr = 0;
 	optopt = 0;
 
-	while ((o = getopt_long(ac, av, "c:vVnw:", g_long_opts, NULL)) != -1) {
+	while ((o = getopt_long(ac, av, "c:vVnw:W:", g_long_opts, NULL)) != -1) {
 
 		switch (o) {
 
@@ -189,7 +190,11 @@ int parse_arguments(int ac, char **av, opt_t *option)
 				break;
 
 			case 'w':
-				ret = parse_timeout(option, optarg);
+				ret = parse_seconds(&option[OPT_TIMEOUT_INDEX], optarg);
+				break;
+
+			case 'W':
+				ret = parse_seconds(&option[OPT_LINGER_INDEX], optarg);
 				break;
 
 			case 'v':

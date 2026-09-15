@@ -6,7 +6,7 @@
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/02 16:56:56 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/07/03 16:04:49 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/09/15 22:41:00 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ opt_t *get_options(size_t *size)
 		[OPT_VERBOSE_INDEX] = ARGOPT("verbose", FALSE, BOOL, sizeof(bool_t)),
 		[OPT_TTL_INDEX] = ARGOPT("ttl", FALSE, UINT_32, sizeof(uint32_t)),
 		[OPT_NUMERIC_INDEX] = ARGOPT("numeric", FALSE, BOOL, sizeof(bool_t)),
-		[OPT_TIMEOUT_INDEX] = ARGOPT("timeout", FALSE, UINT_64, sizeof(uint64_t))
+		[OPT_TIMEOUT_INDEX] = ARGOPT("timeout", FALSE, UINT_64, sizeof(uint64_t)),
+		[OPT_LINGER_INDEX] = ARGOPT("linger", FALSE, UINT_64, sizeof(uint64_t))
 	};
 
 	if (size)

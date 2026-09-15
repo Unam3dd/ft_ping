@@ -341,6 +341,8 @@ static void	test_help_version(void)
 	cap = run_capture(av_help);
 	assert_ok(cap.data && strstr(cap.data, "Usage: ft_ping"),
 		"ft_ping --help shows usage");
+	assert_ok(cap.data && strstr(cap.data, "--linger"),
+		"ft_ping --help documents --linger");
 	free_capture(&cap);
 
 	cap = run_capture(av_ver);
@@ -357,6 +359,7 @@ static void	test_parse_cli(void)
 	char		*av_nohost[] = {g_ft_ping, NULL};
 	char		*av_bad[] = {g_ft_ping, "-c", "xyz", "127.0.0.1", NULL};
 	char		*av_ttl[] = {g_ft_ping, "--ttl", "999", "127.0.0.1", NULL};
+	char		*av_linger[] = {g_ft_ping, "-W", "0", "127.0.0.1", NULL};
 
 	memset(&cap, 0, sizeof(t_capture));
 
@@ -374,6 +377,11 @@ static void	test_parse_cli(void)
 	cap = run_capture(av_ttl);
 	assert_ok(WIFEXITED(cap.status) && WEXITSTATUS(cap.status) != 0,
 		"ttl out of range -> non-zero exit");
+	free_capture(&cap);
+
+	cap = run_capture(av_linger);
+	assert_ok(WIFEXITED(cap.status) && WEXITSTATUS(cap.status) != 0,
+		"linger < 1 -> non-zero exit");
 	free_capture(&cap);
 }
 

@@ -19,6 +19,7 @@
 ////////////////////////////////////
 
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -26,19 +27,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-/////////////////////////////////////
-//
-//			DEFINES
-//
-////////////////////////////////////
-
-/* How long we keep listening once every packet has been sent (inetutils
- * calls this MAXWAIT). */
-#define MAXWAIT_MS 10000
-
-/* Poll slice while packets are still being emitted. */
-#define TICK_MS 3500
 
 /////////////////////////////////////
 //
@@ -83,10 +71,6 @@ static uint64_t	now_ms(void)
 	return ((uint64_t)ts.tv_sec * 1000 + (uint64_t)(ts.tv_nsec / 1000000));
 }
 
-/* A failing sendto (unreachable network, ...) must not take the program
- * down: report it and keep the loop alive, as the subject requires.
- * The attempt is still counted, both because inetutils reports what it
- * tried to send and so that -c always terminates. */
 static void	send_one(context_t *ctx)
 {
 	if (send_icmp_echo(ctx, ctx->fd, &ctx->sin) < 0)
@@ -119,21 +103,30 @@ static int	on_icmp(context_t *ctx, opt_t *opt, uint64_t *answered)
 	return (count_done(opt[OPT_COUNT_INDEX].u64, ctx->s.received));
 }
 
-/* Remaining time to wait for the last replies, or TICK_MS while we are
- * still sending. */
-static int	poll_timeout(nfds_t nfd, uint64_t wait_start)
+static uint64_t	linger_ms(opt_t *opt)
 {
-	uint64_t	spent;
+	if (opt[OPT_LINGER_INDEX].u64)
+		return (opt[OPT_LINGER_INDEX].u64 * 1000ULL);
+	return (MAXWAIT_MS);
+}
+
+static int	poll_timeout(nfds_t nfd, uint64_t wait_start, uint64_t maxwait)
+{
+	uint64_t	spent = 0;
+	uint64_t	left = 0;
 
 	if (nfd != 1)
 		return (TICK_MS);
 
 	spent = now_ms() - wait_start;
 
-	if (spent >= MAXWAIT_MS)
+	if (spent >= maxwait)
 		return (0);
 
-	return ((int)(MAXWAIT_MS - spent));
+	left = maxwait - spent;
+	if (left > (uint64_t)INT_MAX)
+		return (INT_MAX);
+	return ((int)left);
 }
 
 /////////////////////////////////////
@@ -183,11 +176,10 @@ int ping_loop(context_t *ctx)
 			wait_start = now_ms();
 		}
 
-		/* Nothing left outstanding: no point waiting out MAXWAIT. */
 		if (nfd == 1 && answered >= ctx->s.transmitted)
 			break ;
 
-		s = poll(fds, nfd, poll_timeout(nfd, wait_start));
+		s = poll(fds, nfd, poll_timeout(nfd, wait_start, linger_ms(opt)));
 		
 		if (s < 0) {
 			if (errno == EINTR)
