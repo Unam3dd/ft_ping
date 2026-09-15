@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#if ! defined(__linux__)
+#if !defined(__linux__)
 #error "This project compile only on Linux"
 #endif
 
@@ -41,12 +41,12 @@
 //
 ////////////////////////////////////
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/ip.h>
 #include <sys/time.h>
 
 /////////////////////////////////////
@@ -80,30 +80,30 @@ typedef int fd_t;
 
 enum __attribute__((packed)) e_bool_t
 {
-	FALSE,
-	TRUE
+    FALSE,
+    TRUE
 };
 
 enum e_opt_type_t
 {
-	BOOL,
-	INT_32,
-	UINT_32,
-	INT_64,
-	UINT_64,
-	FLOAT_32,
-	FLOAT_64,
-	STRING,
+    BOOL,
+    INT_32,
+    UINT_32,
+    INT_64,
+    UINT_64,
+    FLOAT_32,
+    FLOAT_64,
+    STRING,
 };
 
 enum e_opt_index_t
 {
-	OPT_HOST_INDEX,
-	OPT_COUNT_INDEX,
-	OPT_VERBOSE_INDEX,
-	OPT_TTL_INDEX,
-	OPT_NUMERIC_INDEX,
-	OPT_DEADLINE_INDEX,
+    OPT_HOST_INDEX,
+    OPT_COUNT_INDEX,
+    OPT_VERBOSE_INDEX,
+    OPT_TTL_INDEX,
+    OPT_NUMERIC_INDEX,
+    OPT_DEADLINE_INDEX,
 };
 
 /////////////////////////////////////
@@ -114,72 +114,72 @@ enum e_opt_index_t
 
 struct s_icmp_stat_t
 {
-	uint64_t transmitted;
-	uint64_t received;
+    uint64_t transmitted;
+    uint64_t received;
 };
 
 struct s_rtt_t
 {
-	double			min;
-	double			max;
-	double			sum;
-	double			sumsq;
-	uint64_t		count;
-	uint64_t		elapsed_ms;
-	struct timeval	start;
+    double min;
+    double max;
+    double sum;
+    double sumsq;
+    uint64_t count;
+    uint64_t elapsed_ms;
+    struct timeval start;
 };
 
 struct s_opt_t
 {
-	const char *key;
-	bool_t     required;
-	union {
-		void    *value;
-		char    *str;
-		uint64_t u64;
-		uint32_t u32;
-		int64_t i64;
-		int32_t i32;
-		double  f64;
-		float   f32;
-		bool_t  bool;
-	};
-	
-	opt_type_t type;
-	
-	size_t size;
+    const char *key;
+    bool_t required;
+    union
+    {
+        void *value;
+        char *str;
+        uint64_t u64;
+        uint32_t u32;
+        int64_t i64;
+        int32_t i32;
+        double f64;
+        float f32;
+        bool_t bool;
+    };
+
+    opt_type_t type;
+
+    size_t size;
 };
 
 struct s_context_t
 {
-	icmp_stat_t	s;
-	rtt_t		rtt;
-	sin_t		sin;
-	fd_t		fd;
-	fd_t		tfd;
+    icmp_stat_t s;
+    rtt_t rtt;
+    sin_t sin;
+    fd_t fd;
+    fd_t tfd;
 };
 
 struct s_icmp_pkt_t
 {
-	icmphdr_t h;
-	struct timeval t;
-	uint8_t data[0x28];
+    icmphdr_t h;
+    struct timeval t;
+    uint8_t data[0x28];
 };
 
 struct __attribute__((packed)) s_icmp_dest_unreach_t
 {
-	icmphdr_t hdr;
-	iphdr_t iphdr;
-	icmp_pkt_t pkt;
+    icmphdr_t hdr;
+    iphdr_t iphdr;
+    icmp_pkt_t pkt;
 };
 
 struct s_icmp_msg_t
 {
-	uint8_t		type;
-	uint8_t		code;
-	const char	*msg;
+    uint8_t type;
+    uint8_t code;
+    const char *msg;
 };
-
 
 /////////////////////////////////////
 //
@@ -187,8 +187,8 @@ struct s_icmp_msg_t
 //
 ////////////////////////////////////
 
-#define ARGOPT(k,r,t,s) { k, r, { NULL }, t, s}
-#define BIG16(n) (((n >> 8 | n << 8) & 0xFFFF)) 
+#define ARGOPT(k, r, t, s) {k, r, {NULL}, t, s}
+#define BIG16(n) (((n >> 8 | n << 8) & 0xFFFF))
 
 /////////////////////////////////////
 //
@@ -214,6 +214,7 @@ int parse_arguments(int ac, char **av, opt_t *options);
 ////////////////////////////////////
 
 void show_usage(void);
+void show_help(void);
 
 /////////////////////////////////////
 //
@@ -259,7 +260,7 @@ uint16_t checksum(void *b, int len);
 //
 ////////////////////////////////////
 
-int  create_timefd(const time_t seconds);
+int create_timefd(const time_t seconds);
 double get_ms(struct timeval *t);
 
 /////////////////////////////////////
@@ -276,11 +277,11 @@ void show_stats(const icmp_stat_t *s, const rtt_t *r);
 //
 ////////////////////////////////////
 
-void	rtt_init(rtt_t *r);
-void	rtt_start(rtt_t *r);
-void	rtt_stop(rtt_t *r);
-void	rtt_add(rtt_t *r, double ms);
-void	rtt_show(const rtt_t *r);
+void rtt_init(rtt_t *r);
+void rtt_start(rtt_t *r);
+void rtt_stop(rtt_t *r);
+void rtt_add(rtt_t *r, double ms);
+void rtt_show(const rtt_t *r);
 
 /////////////////////////////////////
 //
@@ -288,7 +289,7 @@ void	rtt_show(const rtt_t *r);
 //
 ////////////////////////////////////
 
-void	verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp);
-int	handle_icmp_error(context_t *ctx, const char *buf, int size);
+void verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp);
+int handle_icmp_error(context_t *ctx, const char *buf, int size);
 
 #endif

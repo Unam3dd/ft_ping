@@ -18,11 +18,10 @@
 //
 ////////////////////////////////////
 
-#include <errno.h>
 #include <getopt.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /////////////////////////////////////
@@ -33,18 +32,17 @@
 
 opt_t *get_options(size_t *size)
 {
-	static opt_t options[] = { 
-		[OPT_HOST_INDEX] = ARGOPT("host", TRUE, STRING, sizeof(char *)),
-		[OPT_COUNT_INDEX] = ARGOPT("count", FALSE, UINT_64, sizeof(uint64_t)),
-		[OPT_VERBOSE_INDEX] = ARGOPT("verbose", FALSE, BOOL, sizeof(bool_t)),
-		[OPT_TTL_INDEX] = ARGOPT("ttl", FALSE, UINT_32, sizeof(uint32_t)),
-		[OPT_NUMERIC_INDEX] = ARGOPT("numeric", FALSE, BOOL, sizeof(bool_t)),
-		[OPT_DEADLINE_INDEX] = ARGOPT("deadline", FALSE, UINT_64, sizeof(uint64_t))
-	};
+    static opt_t options[] = {
+        [OPT_HOST_INDEX] = ARGOPT("host", TRUE, STRING, sizeof(char *)),
+        [OPT_COUNT_INDEX] = ARGOPT("count", FALSE, UINT_64, sizeof(uint64_t)),
+        [OPT_VERBOSE_INDEX] = ARGOPT("verbose", FALSE, BOOL, sizeof(bool_t)),
+        [OPT_TTL_INDEX] = ARGOPT("ttl", FALSE, UINT_32, sizeof(uint32_t)),
+        [OPT_NUMERIC_INDEX] = ARGOPT("numeric", FALSE, BOOL, sizeof(bool_t)),
+        [OPT_DEADLINE_INDEX] =
+            ARGOPT("deadline", FALSE, UINT_64, sizeof(uint64_t))};
 
-	if (size)
-		*size = sizeof(options)/sizeof(opt_t);
+    if (size)
+        *size = sizeof(options) / sizeof(opt_t);
 
-	return (options);
+    return (options);
 }
-

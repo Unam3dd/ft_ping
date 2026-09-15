@@ -18,8 +18,8 @@
 //
 ////////////////////////////////////
 
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 /////////////////////////////////////
@@ -30,20 +30,22 @@
 
 uint64_t parse_unumber(const char *str)
 {
-	if (!str || !*str) {
-		errno = EINVAL;
-		return (0);
-	}
+    if (!str || !*str)
+    {
+        errno = EINVAL;
+        return (0);
+    }
 
-	if (strspn(str, "0123456789") != strlen(str)) {
-		errno = EINVAL;
-		return (0);
-	}
+    if (strspn(str, "0123456789") != strlen(str))
+    {
+        errno = EINVAL;
+        return (0);
+    }
 
-	uint64_t value = 0;
+    uint64_t value = 0;
 
-	errno = 0;
-	value = strtoull(str, NULL, 10);
+    errno = 0;
+    value = strtoull(str, NULL, 10);
 
-	return (errno == ERANGE ? 0 : value);
+    return (errno == ERANGE ? 0 : value);
 }
