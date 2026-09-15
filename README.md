@@ -321,7 +321,7 @@ mdev     = sqrt(variance);
 | `-f` | Flood ping |
 | `-l` | Preload |
 | `-n` | No DNS resolution |
-| `-w` | Wait deadline |
+| `-w` | Stop after N seconds (`--timeout`) |
 | `-W` | Timeout per reply |
 | `-p` | Pattern to send in packets |
 | `-r` | Record route |
@@ -347,21 +347,35 @@ mdev     = sqrt(variance);
 # Verbose mode (also shows ICMP errors)
 ./ft_ping -v 127.0.0.1
 
-# Help
+# Force a Time Exceeded error to check the -v dump
+./ft_ping -v -c 1 --ttl 1 8.8.8.8
+
+# Several hosts, one statistics block each
+./ft_ping -c 2 127.0.0.1 8.8.8.8
+
+# Help (long list) and short synopsis
 ./ft_ping -?
+./ft_ping --usage
 ```
 
 ### 📤 Expected output example (inetutils-2.0)
 
+Note the inetutils specifics: `): 56 data bytes`, a sequence starting at
+**0**, and `N packets received` (iputils, the other common `ping`, differs on
+all three).
+
 ```
-PING google.com (142.250.185.78) 56(84) bytes of data.
-64 bytes from 142.250.185.78: icmp_seq=1 ttl=116 time=12.3 ms
-64 bytes from 142.250.185.78: icmp_seq=2 ttl=116 time=11.8 ms
+PING google.com (142.250.185.78): 56 data bytes
+64 bytes from 142.250.185.78: icmp_seq=0 ttl=116 time=12.300 ms
+64 bytes from 142.250.185.78: icmp_seq=1 ttl=116 time=11.800 ms
 ^C
 --- google.com ping statistics ---
-2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+2 packets transmitted, 2 packets received, 0% packet loss
 rtt min/avg/max/mdev = 11.800/12.050/12.300/0.250 ms
 ```
+
+The last line is the one deviation the subject explicitly tolerates
+(inetutils writes `round-trip min/avg/max/stddev`).
 
 ---
 
@@ -443,11 +457,11 @@ This section summarizes the main difficulties encountered while implementing `ft
 - Filter with the Echo identifier (`getpid() & 0xFFFF`) to keep only our packets
 - Print a short human-readable message
 - With `-v`, dump the embedded IP/ICMP headers (inetutils-style)
-- Use a low TTL (`--ttl` / `-t`) to reliably trigger Time Exceeded during tests
+- Use a low TTL (`--ttl`) to reliably trigger Time Exceeded during tests
 
 ### 5. Event loop: send every second + receive + signals
 
-**Challenge:** Send one Echo Request per second, receive replies asynchronously, and stop cleanly on `Ctrl+C` or deadline (`-w`).
+**Challenge:** Send one Echo Request per second, receive replies asynchronously, and stop cleanly on `Ctrl+C` or timeout (`-w`).
 
 **Resolution:**
 - `timerfd` for the 1-second interval
@@ -466,11 +480,11 @@ This section summarizes the main difficulties encountered while implementing `ft
 
 ### 7. CLI parsing edge cases
 
-**Challenge:** Options such as `-?`, invalid values (`-c abc`, `-t 999`), missing host, and `-V` must not crash or accidentally start a ping with a `NULL` host.
+**Challenge:** Options such as `-?`, invalid values (`-c abc`, `--ttl 999`), missing host, and `-V` must not crash or accidentally start a ping with a `NULL` host.
 
 **Resolution:**
 - Centralize parsing with `getopt_long`
-- Validate numeric arguments via `parse_unumber` + range checks (TTL 1–255, deadline > 0)
+- Validate numeric arguments via `parse_unumber` + range checks (TTL 1–255, timeout > 0)
 - Special-case `-?` / `--help` / `--usage` so help always works (including under zsh, where `?` is a glob: use `'-?'`)
 - Dedicated return codes: help → exit error path, version (`-V`) → exit 0 without starting the ping
 

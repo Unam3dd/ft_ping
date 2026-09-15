@@ -6,7 +6,7 @@
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 16:00:02 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/07/03 16:04:25 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/09/15 10:40:00 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,35 +22,37 @@
 
 /////////////////////////////////////
 //
-//			HELP
-//
-////////////////////////////////////
-
-void show_help(void)
-{
-    puts("usage: ft_ping [OPTION...] HOST ...");
-    puts("Send ICMP ECHO_REQUEST packets to network hosts.");
-    puts("Options:");
-    puts("\t-v, --verbose\t\tverbose output\n");
-    puts("\t-n, --numeric\t\tnumeric output only (no reverse DNS)\n");
-    puts("\t-c, --count=NUMBER\tstop after sending NUMBER packets\n");
-    puts("\t-w, --deadline=SECS\tstop after SECONDS, regardless of replies\n");
-    puts("\t    --ttl=NUMBER\tset IP time to live\n");
-    puts("\t-?, --help\t\tshow help\n");
-    puts("\t    --usage\t\tshow help\n");
-    puts("\t-V, --version\t\tprint program version\n");
-
-    show_version();
-}
-
-/////////////////////////////////////
-//
 //			USAGE
 //
 ////////////////////////////////////
 
+/* Long help, printed for -? and --help (same output as inetutils). */
 void show_usage(void)
 {
-    puts("usage: ft_ping [OPTION...] HOST ...");
-    puts("Send ICMP ECHO_REQUEST packets to network hosts.");
+	puts("Usage: ft_ping [OPTION...] HOST ...");
+	puts("Send ICMP ECHO_REQUEST packets to network hosts.");
+	puts("");
+	puts(" Options valid for all request types:");
+	puts("");
+	puts("  -c, --count=NUMBER         stop after sending NUMBER packets");
+	puts("  -n, --numeric              do not resolve host addresses");
+	puts("      --ttl=N                specify N as time-to-live");
+	puts("  -v, --verbose              verbose output");
+	puts("  -w, --timeout=N            stop after N seconds");
+	puts("");
+	puts("  -?, --help                 give this help list");
+	puts("      --usage                give a short usage message");
+	puts("  -V, --version              print program version");
+	puts("");
+	puts("Mandatory or optional arguments to long options are also mandatory"
+		" or optional");
+	puts("for any corresponding short options.");
+}
+
+/* Short synopsis, printed for --usage only. */
+void show_usage_short(void)
+{
+	puts("Usage: ft_ping [-nv?V] [-c NUMBER] [-w N] [--count=NUMBER]");
+	puts("            [--numeric] [--ttl=N] [--verbose] [--timeout=N]");
+	puts("            [--help] [--usage] [--version] HOST ...");
 }

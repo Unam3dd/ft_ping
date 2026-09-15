@@ -43,12 +43,14 @@ int resolve_host(const char *host, sin_t *sin)
 	spec.ai_family = AF_INET;
 	status = getaddrinfo(host, NULL, &spec, &res);
 
-	if (status) {
-		fprintf(stderr, "Error: getaddrinfo: %s\n", gai_strerror(status));
+	if (status || !res) {
+		fprintf(stderr, "ft_ping: unknown host\n");
+		if (!status)
+			freeaddrinfo(res);
 		return (1);
 	}
 
-	if (sin && res)
+	if (sin)
 		*sin = *(sin_t *)res->ai_addr;
 
 	freeaddrinfo(res);

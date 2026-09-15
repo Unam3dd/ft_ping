@@ -49,7 +49,7 @@ static int	our_echo(const icmphdr_t *embed)
 	if (!embed || embed->type != ICMP_ECHO)
 		return (1);
 
-	return (embed->un.echo.id == (uint16_t)(getpid() & 0xFFFF));
+	return (embed->un.echo.id == htons((uint16_t)(getpid() & 0xFFFF)));
 }
 
 static int	should_show(context_t *ctx, const iphdr_t *embed)
@@ -128,7 +128,7 @@ void	verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp)
 	inet_ntop(AF_INET, &embed_ip->daddr, dst, sizeof(dst));
 
 	printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src\tDst\tData\n");
-	printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x %s  %s\n",
+	printf(" %1x  %1x  %02x %04x %04x   %1x %04x  %02x  %02x %04x %s  %s \n",
 		embed_ip->version, embed_ip->ihl, embed_ip->tos,
 		ntohs(embed_ip->tot_len), ntohs(embed_ip->id),
 		(off & 0xe000) >> 13, off & 0x1fff,
@@ -169,11 +169,15 @@ int	handle_icmp_error(context_t *ctx, const char *buf, int size)
 	embed_ip = (iphdr_t *)(buf + embed_off);
 	embed_icmp = (icmphdr_t *)(buf + embed_off + embed_hlen);
 
-	if (!our_echo(embed_icmp) || !should_show(ctx, embed_ip))
+	if (!our_echo(embed_icmp))
 		return (1);
 
-	print_error(outer, size - outer_hlen, err->type, err->code);
-	verbose_dump(embed_ip, embed_icmp);
+	if (should_show(ctx, embed_ip)) {
+		print_error(outer, size - outer_hlen, err->type, err->code);
+		verbose_dump(embed_ip, embed_icmp);
+	}
 
-	return (1);
+	/* The packet is accounted for even though it is not a reply: the loop
+	 * uses this to stop waiting instead of burning the whole MAXWAIT. */
+	return (ICMP_OURS_ERROR);
 }
