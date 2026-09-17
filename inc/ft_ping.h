@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#if ! defined(__linux__)
+#if !defined(__linux__)
 #error "This project compile only on Linux"
 #endif
 
@@ -41,12 +41,11 @@
 //
 ////////////////////////////////////
 
-/* How long we keep listening once every packet has been sent (inetutils
- * calls this MAXWAIT). */
 #define MAXWAIT_MS 10000
-
-/* Poll slice while packets are still being emitted. */
 #define TICK_MS 3500
+#define EXIT_USAGE 64
+#define PING_FATAL 2
+#define ICMP_OURS_ERROR 2
 
 /////////////////////////////////////
 //
@@ -54,12 +53,12 @@
 //
 ////////////////////////////////////
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/ip.h>
 #include <sys/time.h>
 
 /////////////////////////////////////
@@ -92,39 +91,39 @@ typedef int fd_t;
 
 enum __attribute__((packed)) e_bool_t
 {
-	FALSE,
-	TRUE
+    FALSE,
+    TRUE
 };
 
 enum e_opt_type_t
 {
-	BOOL,
-	INT_32,
-	UINT_32,
-	INT_64,
-	UINT_64,
-	FLOAT_32,
-	FLOAT_64,
-	STRING,
+    BOOL,
+    INT_32,
+    UINT_32,
+    INT_64,
+    UINT_64,
+    FLOAT_32,
+    FLOAT_64,
+    STRING,
 };
 
 enum e_parse_ret_t
 {
-	PARSE_OK      = 0,	/* keep going                                */
-	PARSE_ERROR   = 1,	/* bad value / runtime failure   -> exit 1    */
-	PARSE_DONE    = 2,	/* -V, -?, --help, --usage       -> exit 0    */
-	PARSE_USAGE   = 3	/* unknown option, missing host  -> exit 64   */
+    PARSE_OK = 0,    /* keep going                                */
+    PARSE_ERROR = 1, /* bad value / runtime failure   -> exit 1    */
+    PARSE_DONE = 2,  /* -V, -?, --help, --usage       -> exit 0    */
+    PARSE_USAGE = 3  /* unknown option, missing host  -> exit 64   */
 };
 
 enum e_opt_index_t
 {
-	OPT_HOST_INDEX,
-	OPT_COUNT_INDEX,
-	OPT_VERBOSE_INDEX,
-	OPT_TTL_INDEX,
-	OPT_NUMERIC_INDEX,
-	OPT_TIMEOUT_INDEX,
-	OPT_LINGER_INDEX,
+    OPT_HOST_INDEX,
+    OPT_COUNT_INDEX,
+    OPT_VERBOSE_INDEX,
+    OPT_TTL_INDEX,
+    OPT_NUMERIC_INDEX,
+    OPT_TIMEOUT_INDEX,
+    OPT_LINGER_INDEX,
 };
 
 /////////////////////////////////////
@@ -135,65 +134,65 @@ enum e_opt_index_t
 
 struct s_icmp_stat_t
 {
-	uint64_t transmitted;
-	uint64_t received;
+    uint64_t transmitted;
+    uint64_t received;
 };
 
 struct s_rtt_t
 {
-	double			min;
-	double			max;
-	double			sum;
-	double			sumsq;
-	uint64_t		count;
-	uint64_t		elapsed_ms;
-	struct timeval	start;
+    double min;
+    double max;
+    double sum;
+    double sumsq;
+    uint64_t count;
+    uint64_t elapsed_ms;
+    struct timeval start;
 };
 
 struct s_opt_t
 {
-	const char *key;
-	bool_t     required;
-	union {
-		void    *value;
-		char    *str;
-		uint64_t u64;
-		uint32_t u32;
-		int64_t i64;
-		int32_t i32;
-		double  f64;
-		float   f32;
-		bool_t  bool;
-	};
-	
-	opt_type_t type;
-	
-	size_t size;
+    const char *key;
+    bool_t required;
+    union
+    {
+        void *value;
+        char *str;
+        uint64_t u64;
+        uint32_t u32;
+        int64_t i64;
+        int32_t i32;
+        double f64;
+        float f32;
+        bool_t bool;
+    };
+
+    opt_type_t type;
+
+    size_t size;
 };
 
 struct s_context_t
 {
-	icmp_stat_t	s;
-	rtt_t		rtt;
-	sin_t		sin;
-	fd_t		fd;
-	fd_t		tfd;
+    icmp_stat_t s;
+    rtt_t rtt;
+    sin_t sin;
+    fd_t fd;
+    fd_t tfd;
 };
 
 struct s_icmp_pkt_t
 {
-	icmphdr_t h;
-	struct timeval t;
-	uint8_t data[0x28];
+    icmphdr_t h;
+    struct timeval t;
+    uint8_t data[0x28];
 };
 
 struct s_icmp_msg_t
 {
-	uint8_t		type;
-	uint8_t		code;
-	const char	*msg;
+    uint8_t type;
+    uint8_t code;
+    const char *msg;
 };
-
 
 /////////////////////////////////////
 //
@@ -201,7 +200,7 @@ struct s_icmp_msg_t
 //
 ////////////////////////////////////
 
-#define ARGOPT(k,r,t,s) { k, r, { NULL }, t, s}
+#define ARGOPT(k, r, t, s) {k, r, {NULL}, t, s}
 #define BIG16(n) ((((n) >> 8 | (n) << 8) & 0xFFFF))
 
 /////////////////////////////////////
@@ -245,10 +244,6 @@ void show_version(void);
 //
 ////////////////////////////////////
 
-/* recv_icmp_echo(): 0 = echo reply for us, ICMP_OURS_ERROR = ICMP error
- * about one of our packets, 1 = not ours, -1 = failure. */
-#define ICMP_OURS_ERROR 2
-
 int resolve_host(const char *host, sin_t *sin);
 int create_socket(void);
 int set_socket_ttl(fd_t fd, uint32_t ttl);
@@ -262,8 +257,6 @@ int ip_icmp_ok(const char *buf, int size, int offset, int *hlen);
 //			PROGRAM
 //
 ////////////////////////////////////
-
-#define PING_FATAL 2
 
 int ping_program(context_t *ctx, const char *host);
 int ping_loop(context_t *ctx);
@@ -282,7 +275,7 @@ uint16_t checksum(void *b, int len);
 //
 ////////////////////////////////////
 
-int  create_timefd(const time_t seconds);
+int create_timefd(const time_t seconds);
 double get_ms(struct timeval *t);
 
 /////////////////////////////////////
@@ -299,11 +292,11 @@ void show_stats(const icmp_stat_t *s, const rtt_t *r);
 //
 ////////////////////////////////////
 
-void	rtt_init(rtt_t *r);
-void	rtt_start(rtt_t *r);
-void	rtt_stop(rtt_t *r);
-void	rtt_add(rtt_t *r, double ms);
-void	rtt_show(const rtt_t *r);
+void rtt_init(rtt_t *r);
+void rtt_start(rtt_t *r);
+void rtt_stop(rtt_t *r);
+void rtt_add(rtt_t *r, double ms);
+void rtt_show(const rtt_t *r);
 
 /////////////////////////////////////
 //
@@ -311,7 +304,7 @@ void	rtt_show(const rtt_t *r);
 //
 ////////////////////////////////////
 
-void	verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp);
-int	handle_icmp_error(context_t *ctx, const char *buf, int size);
+void verbose_dump(iphdr_t *embed_ip, icmphdr_t *embed_icmp);
+int handle_icmp_error(context_t *ctx, const char *buf, int size);
 
 #endif

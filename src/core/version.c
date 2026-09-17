@@ -28,7 +28,6 @@
 
 void show_version(void)
 {
-	printf("Version ft_ping: %s\tAuthor: %s\t\nCompilation Date: %s %s\n", 
-		FT_PING_VERSION, FT_PING_AUTHOR, __DATE__, __TIME__);
+    printf("Version ft_ping: %s\tAuthor: %s\t\nCompilation Date: %s %s\n",
+           FT_PING_VERSION, FT_PING_AUTHOR, __DATE__, __TIME__);
 }
-

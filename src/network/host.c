@@ -18,11 +18,11 @@
 //
 ////////////////////////////////////
 
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <string.h>
+#include <netinet/in.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
 
 /////////////////////////////////////
 //
@@ -32,29 +32,29 @@
 
 int resolve_host(const char *host, sin_t *sin)
 {
-	if (!host)
-		return (1);
+    if (!host)
+        return (1);
 
-	struct addrinfo spec, *res = NULL;
-	int status = 0;
+    struct addrinfo spec, *res = NULL;
+    int status = 0;
 
-	memset(&spec, 0, sizeof(struct addrinfo));
+    memset(&spec, 0, sizeof(struct addrinfo));
 
-	spec.ai_family = AF_INET;
-	status = getaddrinfo(host, NULL, &spec, &res);
+    spec.ai_family = AF_INET;
+    status = getaddrinfo(host, NULL, &spec, &res);
 
-	if (status || !res) {
-		fprintf(stderr, "ft_ping: unknown host\n");
-		if (!status)
-			freeaddrinfo(res);
-		return (1);
-	}
+    if (status || !res)
+    {
+        fprintf(stderr, "ft_ping: unknown host\n");
+        if (!status)
+            freeaddrinfo(res);
+        return (1);
+    }
 
-	if (sin)
-		*sin = *(sin_t *)res->ai_addr;
+    if (sin)
+        *sin = *(sin_t *)res->ai_addr;
 
-	freeaddrinfo(res);
+    freeaddrinfo(res);
 
-	return (0);
+    return (0);
 }
-

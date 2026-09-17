@@ -11,9 +11,8 @@
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
-#include <stdio.h>
-#include <string.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 
 /////////////////////////////////////
 //
@@ -33,42 +32,41 @@
 
 int main(int ac, char **av)
 {
-	opt_t *options = get_options(NULL);
-	context_t ctx = {
-		.sin.sin_addr.s_addr = 0,
-		.sin.sin_port = 0,
-		.sin.sin_family = 0,
-		.sin.sin_zero = { 0, 0, 0, 0, 0, 0, 0, 0 }
-	};
+    opt_t *options = get_options(NULL);
+    context_t ctx = {.sin.sin_addr.s_addr = 0,
+                     .sin.sin_port = 0,
+                     .sin.sin_family = 0,
+                     .sin.sin_zero = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-	int ret = parse_arguments(ac, av, options);
-	int failed = 0;
-	int i = 0;
+    int ret = parse_arguments(ac, av, options);
+    int failed = 0;
+    int i = 0;
 
-	if (ret == PARSE_DONE)
-		return (0);
+    if (ret == PARSE_DONE)
+        return (0);
 
-	if (ret == PARSE_USAGE)
-		return (EXIT_USAGE);
+    if (ret == PARSE_USAGE)
+        return (EXIT_USAGE);
 
-	if (ret != PARSE_OK)
-		return (1);
+    if (ret != PARSE_OK)
+        return (1);
 
-	// One statistics block per host, in the order given on the command line
-	i = get_first_host_index();
-	while (i < ac) {
-		options[OPT_HOST_INDEX].str = av[i];
+    // One statistics block per host, in the order given on the command line
+    i = get_first_host_index();
+    while (i < ac)
+    {
+        options[OPT_HOST_INDEX].str = av[i];
 
-		ret = ping_program(&ctx, av[i]);
+        ret = ping_program(&ctx, av[i]);
 
-		if (ret == PING_FATAL)
-			return (1);
+        if (ret == PING_FATAL)
+            return (1);
 
-		if (ret)
-			failed = 1;
+        if (ret)
+            failed = 1;
 
-		i++;
-	}
+        i++;
+    }
 
-	return (failed);
+    return (failed);
 }
