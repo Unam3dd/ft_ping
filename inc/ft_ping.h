@@ -163,7 +163,7 @@ struct s_opt_t
         int32_t i32;
         double f64;
         float f32;
-        bool_t bool;
+        bool_t b;
     };
 
     opt_type_t type;

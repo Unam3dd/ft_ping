@@ -41,7 +41,7 @@ static int start_program(sin_t *sin, const char *host)
 	}
 
 	printf("PING %s (%s): %zu data bytes", host, buf, data_size);
-	if (o[OPT_VERBOSE_INDEX].bool)
+	if (o[OPT_VERBOSE_INDEX].b)
 		printf(", id 0x%04x = %u", ident, ident);
 	printf("\n");
 

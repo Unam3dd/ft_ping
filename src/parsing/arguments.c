@@ -198,11 +198,11 @@ int parse_arguments(int ac, char **av, opt_t *option)
 				break;
 
 			case 'v':
-				option[OPT_VERBOSE_INDEX].bool = TRUE;
+				option[OPT_VERBOSE_INDEX].b = TRUE;
 				break;
 
 			case 'n':
-				option[OPT_NUMERIC_INDEX].bool = TRUE;
+				option[OPT_NUMERIC_INDEX].b = TRUE;
 				break;
 
 			case 'V':

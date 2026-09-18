@@ -29,7 +29,7 @@ static const icmp_msg_t g_msgs[] = {
 
 static bool_t is_verbose(void)
 {
-    return (get_options(NULL)[OPT_VERBOSE_INDEX].bool);
+    return (get_options(NULL)[OPT_VERBOSE_INDEX].b);
 }
 
 static const char *icmp_msg(uint8_t type, uint8_t code)
