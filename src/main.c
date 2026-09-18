@@ -16,16 +16,6 @@
 
 /////////////////////////////////////
 //
-//			EXIT CODES
-//
-////////////////////////////////////
-
-/* Same convention as inetutils: 64 (EX_USAGE) for a command line the
- * program cannot make sense of, 1 for a host that did not answer. */
-#define EXIT_USAGE 64
-
-/////////////////////////////////////
-//
 //			MAIN
 //
 ////////////////////////////////////
@@ -51,7 +41,6 @@ int main(int ac, char **av)
     if (ret != PARSE_OK)
         return (1);
 
-    // One statistics block per host, in the order given on the command line
     i = get_first_host_index();
     while (i < ac)
     {

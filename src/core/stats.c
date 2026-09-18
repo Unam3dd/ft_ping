@@ -30,10 +30,13 @@ void show_stats(const icmp_stat_t *s, const rtt_t *r)
 
     o = get_options(NULL);
     host = o[OPT_HOST_INDEX].str;
-    if (!host)
+    
+	if (!host)
         host = "?";
-    loss = 0;
-    if (s->transmitted)
+    
+	loss = 0;
+    
+	if (s->transmitted)
         loss = (int)(((s->transmitted - s->received) * 100) / s->transmitted);
 
     printf("--- %s ping statistics ---\n", host);

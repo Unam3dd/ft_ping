@@ -23,18 +23,6 @@
 
 /////////////////////////////////////
 //
-//			DEFINES
-//
-////////////////////////////////////
-
-/* --ttl has no short form in inetutils, so it gets a value outside ASCII */
-#define OPT_TTL_LONG 0x100
-
-#define TRY_MSG "Try 'ft_ping --help' or 'ft_ping --usage'" \
-	" for more information.\n"
-
-/////////////////////////////////////
-//
 //			STATIC
 //
 ////////////////////////////////////
@@ -54,15 +42,12 @@ static const struct option	g_long_opts[] = {
 	{ 0, 0, 0, 0 }
 };
 
-/* Every option letter/value we actually know about.  Used to tell a missing
- * argument ("-c" with nothing after it) from a plain unknown option. */
 static int	is_known_opt(int c)
 {
 	return (c == 'c' || c == 'v' || c == 'V' || c == 'n' || c == 'w'
 		|| c == 'W' || c == OPT_TTL_LONG);
 }
 
-/* Mirrors the messages argp produces for inetutils' ping. */
 static int	usage_error(char **av)
 {
 	const char	*arg = (optind >= 1) ? av[optind - 1] : NULL;
@@ -119,7 +104,7 @@ static int	parse_ttl(opt_t *option, const char *arg)
 		return (PARSE_ERROR);
 	}
 
-	if (option[OPT_TTL_INDEX].u32 > 255) {
+	if (option[OPT_TTL_INDEX].u32 > 0xFF) {
 		fprintf(stderr, "ft_ping: option value too big: %u\n",
 			option[OPT_TTL_INDEX].u32);
 		return (PARSE_ERROR);
@@ -145,7 +130,7 @@ static int	parse_seconds(opt_t *option, const char *arg)
 		return (PARSE_ERROR);
 	}
 
-	if (option->u64 > 2147483647ULL) {
+	if (option->u64 > 0x7FFFFFFFULL) {
 		fprintf(stderr, "ft_ping: option value too big: %lu\n",
 			(unsigned long)option->u64);
 		return (PARSE_ERROR);

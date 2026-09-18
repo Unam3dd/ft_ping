@@ -41,8 +41,10 @@ static int start_program(sin_t *sin, const char *host)
 	}
 
 	printf("PING %s (%s): %zu data bytes", host, buf, data_size);
+	
 	if (o[OPT_VERBOSE_INDEX].b)
 		printf(", id 0x%04x = %u", ident, ident);
+	
 	printf("\n");
 
 	return (0);
@@ -112,21 +114,17 @@ int ping_program(context_t *ctx, const char *host)
 		return (PING_FATAL);
 	}
 
-	// Every host restarts from sequence 0, as inetutils does
 	icmp_reset_seq();
 
 	rtt_init(&ctx->rtt);
 	rtt_start(&ctx->rtt);
 
-	// Loop
 	ping_loop(ctx);
 
 	rtt_stop(&ctx->rtt);
 
-	// Stats
 	show_stats(&ctx->s, &ctx->rtt);
 
-	// Close sockets
 	close_sockets(ctx);
 
 	return (!ctx->s.received);

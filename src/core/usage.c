@@ -26,7 +26,6 @@
 //
 ////////////////////////////////////
 
-/* Long help, printed for -? and --help (same output as inetutils). */
 void show_usage(void)
 {
     puts("Usage: ft_ping [OPTION...] HOST ...");
@@ -50,7 +49,6 @@ void show_usage(void)
     puts("for any corresponding short options.");
 }
 
-/* Short synopsis, printed for --usage only. */
 void show_usage_short(void)
 {
     puts("Usage: ft_ping [-nv?V] [-c NUMBER] [-w N] [-W N] [--count=NUMBER]");

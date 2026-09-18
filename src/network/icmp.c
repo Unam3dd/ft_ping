@@ -72,7 +72,7 @@ int ip_icmp_ok(const char *buf, int size, int offset, int *hlen)
 static int show_reply(iphdr_t *ip, const char *raw, rtt_t *rtt, int icmplen)
 {
     icmp_pkt_t pkt;
-    double ms;
+    double ms = 0;
     char src[INET_ADDRSTRLEN];
 
     if (!ip || !raw || !rtt || icmplen <= 0)

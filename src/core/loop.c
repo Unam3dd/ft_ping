@@ -34,8 +34,6 @@
 //
 ////////////////////////////////////
 
-/* Not reset between hosts: a Ctrl-C stops the whole run, exactly like
- * inetutils does when several hosts are given. */
 static volatile sig_atomic_t	g_run = 1;
 
 /////////////////////////////////////

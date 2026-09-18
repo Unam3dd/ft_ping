@@ -6,7 +6,7 @@
 /*   By: sam0verfl0w <stales@student.42angouleme.f  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/30 22:00:09 by sam0verfl0w       #+#    #+#             */
-/*   Updated: 2026/06/30 22:02:32 by sam0verfl0w      ###   ########.fr       */
+/*   Updated: 2026/09/18 18:02:32 by sam0verfl0w      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,17 +24,17 @@ uint16_t checksum(void *b, int len)
 		return (0);
 
     uint16_t *buf = (unsigned short*)b;
-    uint64_t sum = 0;
+    uint64_t s = 0;
 
-    for (sum = 0; len > 1; len -= sizeof(*buf))
-        sum += *buf++;
+    for (s = 0; len > 1; len -= sizeof(*buf))
+        s += *buf++;
 
     if (len == 1)
-        sum += *(unsigned char*)buf;
+        s += *(unsigned char*)buf;
 
-    sum = (sum >> 16) + (sum & 0xFFFF);
-    sum += (sum >> 16);
+    s = (s >> 16) + (s & 0xFFFF);
+    s += (s >> 16);
 
-    return (unsigned short)(~sum);
+    return (unsigned short)(~s);
 }
 

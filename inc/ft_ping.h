@@ -46,6 +46,9 @@
 #define EXIT_USAGE 64
 #define PING_FATAL 2
 #define ICMP_OURS_ERROR 2
+#define OPT_TTL_LONG 0x100
+#define TRY_MSG "Try 'ft_ping --help' or 'ft_ping --usage'" \
+	" for more information.\n"
 
 /////////////////////////////////////
 //
