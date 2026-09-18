@@ -90,8 +90,8 @@ void	test_parse_arguments(void)
 	reset_options();
 	ret = parse_arguments(12, av_ok, o);
 	TEST_ASSERT(ret == PARSE_OK, "valid args parse OK");
-	TEST_ASSERT(o[OPT_VERBOSE_INDEX].bool == TRUE, "verbose set");
-	TEST_ASSERT(o[OPT_NUMERIC_INDEX].bool == TRUE, "numeric set");
+	TEST_ASSERT(o[OPT_VERBOSE_INDEX].b == TRUE, "verbose set");
+	TEST_ASSERT(o[OPT_NUMERIC_INDEX].b == TRUE, "numeric set");
 	TEST_ASSERT(o[OPT_COUNT_INDEX].u64 == 3, "count = 3");
 	TEST_ASSERT(o[OPT_TTL_INDEX].u32 == 64, "ttl = 64");
 	TEST_ASSERT(o[OPT_TIMEOUT_INDEX].u64 == 5, "timeout = 5");

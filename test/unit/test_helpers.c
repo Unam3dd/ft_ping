@@ -28,7 +28,7 @@ void	reset_options(void)
 	while (i < n) {
 		o[i].u64 = 0;
 		o[i].str = NULL;
-		o[i].bool = FALSE;
+		o[i].b = FALSE;
 		i++;
 	}
 
